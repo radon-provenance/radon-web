@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+    {% include "snippets/sidenav.html" with active="users" %}
+{% endblock sidebar %}
+
+{% block title %}Users{% endblock title %}
+
+{% block main_content %}
+    <h2>Users ({{ user_count }})</h2><hr/>
+
+	{% if user.administrator %}
+	<div class="row">
+	  <div class="pull-right">
+	    <a class="btn btn-sm btn-success" href="{% url 'users:new_user' %}">Add new user</a>
+	    
+	  </div>
+	</div>
+	<hr/>
+	{% endif %}
+
+    {% for u in users %}
+        {% include "users/usertab.html" with req_user=user user=u %}
+    {% endfor %}
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if users.has_previous %}
+                <a href="?page={{ users.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ users.number }} of {{ users.paginator.num_pages }}.
+            </span>
+
+            {% if users.has_next %}
+                <a href="?page={{ users.next_page_number }}">next</a>
+            {% endif %}
+        </span>
+    </div>
+
+
+{% endblock main_content %}

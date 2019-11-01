@@ -1,0 +1,42 @@
+
+<ol class="breadcrumb">
+  <li><a href="{% url 'archive:view' path="" %}">Home</a></li>
+  {% for coll,full in collection_paths %}
+    {% if forloop.last %}
+        <li class="active">{{coll}}</li>
+    {% else %}
+        <li><a href="{% url 'archive:view' path=full %}">{{coll}}</a></li>
+    {% endif %}
+  {% endfor %}
+</ol>
+
+
+{% include "archive/snippets/metadata.html" with metadata=collection.metadata path=collection.path label='success' %}
+<hr/>
+
+{% if collection.can_write %}
+<div class="row">
+  <div class="pull-right">
+    <a class="btn btn-sm btn-success" href="{% url 'archive:new_collection' parent=collection.path %}">Add new collection</a>
+    &nbsp;&nbsp;
+    <a class="btn btn-sm btn-success" href="{% url 'archive:new_resource' parent=collection.path %}">Add new item </a>
+  </div>
+</div>
+<hr/>
+{% endif %}
+
+
+{% for c in children_c %}
+  {% include "archive/snippets/collection_entry.html" with collection=c %}
+{% endfor %}
+
+{% for r in children_r %}
+  {% include "archive/resource/resource_entry.html" with resource=r %}
+{% endfor %}
+
+{% if empty %}
+  This collection is empty
+{% endif %}
+
+<hr/>
+

@@ -1,0 +1,29 @@
+{% extends "archive/base.html" %}
+
+{% block title %}Archive - {{collection.name}}{% endblock title %}
+
+{% block main_content %}
+
+
+<h2>{{collection.name}}
+    {% if collection.can_edit %}
+    &nbsp;&nbsp;<a class="btn btn-xs btn-success" href="{% url 'archive:edit_collection' path=collection.path %}">Edit</a>
+    {% endif %}
+    {% if collection.can_delete %}
+    <a class="btn btn-xs btn-danger" href="{% url 'archive:delete_collection' path=collection.path %}">Delete</a>
+    {% endif %}
+
+
+    <div class="pull-right" style="width:400px;">
+    {% include "snippets/search_form.html" with q=q size="small"%}
+    </div>
+</h2>
+<hr/>
+
+
+{% include "archive/snippets/collection.html" with collection=collection%}
+
+
+{% endblock main_content %}
+
+

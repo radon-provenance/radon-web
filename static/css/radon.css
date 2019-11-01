@@ -1,0 +1,66 @@
+
+.progress {
+    height: 24px;
+}
+.progress-bar {
+    line-height: 24px !important;
+    font-weight: bold;
+    font-size: 1.4em !important;
+}
+
+.user-tab {
+    margin: 0px;
+    margin-bottom: 10px;
+    background-color: #7BAEC7;
+    color: white;
+    border-radius: 4px;
+}
+
+.user-tab a {
+    color: white;
+}
+
+.height-30 {
+    height: 30px;
+}
+
+ul.nav-sidebar {
+    margin-top: 60px;
+}
+
+.error {
+    color: red;
+}
+
+.blue-icon {
+    color: #468CC8;
+}
+
+.gray-icon {
+    color: #999;
+}
+
+.status-up {
+    color: #28BB9C;
+}
+.status-unknown {
+    color: yellow;
+}
+.status-down {
+    color: #E54D42;
+}
+
+
+.activity-item {
+    margin: 10px;
+    padding: 20px;
+    background-color: #eee;
+}
+
+.activity-timespan {
+    float: right;
+}
+
+.activity-message {
+    margin-left: 20px;
+}

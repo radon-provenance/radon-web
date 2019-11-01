@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Activity{% endblock title %}
+
+{% block sidebar %}
+    {% include "snippets/sidenav.html" with active="activity" %}
+{% endblock sidebar %}
+
+
+{% block main_content %}
+
+<h2>Recent Activity</h2>
+
+{% for a in activities %}
+    <div class="activity-item">
+    {{a.html|safe}}
+    </div>
+{% endfor %}
+
+{% endblock main_content %}

@@ -1,0 +1,133 @@
+{% extends "archive/base.html" %}
+
+{% block title %}Item - {{resource.name}}{% endblock title %}
+
+{% block main_content %}
+
+<h2>Item - {{resource.name}}
+        <a class="btn btn-success pull-right" href="{% url 'archive:download' path=resource.path %}">Download file</a>
+
+</h2>
+<hr/>
+
+
+<ol class="breadcrumb">
+  <li><a href="{% url 'archive:view' path="" %}">Home</a></li>
+  {% for coll,full in collection_paths %}
+    {% if forloop.last %}
+        <li class="active"><a href="{% url 'archive:view' path=full %}">{{coll}}</a></li>
+    {% else %}
+        <li><a href="{% url 'archive:view' path=full %}">{{coll}}</a></li>
+    {% endif %}
+  {% endfor %}
+</ol>
+
+
+{# Permission check for action bar .... #}
+
+    <div class="control-bar">
+        {% if resource.can_edit %}
+        <a class="btn btn-info" href='{% url "archive:edit_resource" path=resource.path %}'%}>Edit Item</a>
+        {% endif %}
+        {% if resource.can_delete %}
+        <a class="btn btn-danger" href='{% url "archive:delete_resource" path=resource.path %}'>Delete Item</a>
+        {% endif %}
+
+        <div class="clearfix"></div>
+    </div>
+
+    <hr/>
+
+
+
+<div class="col-md-6">
+    <h4>Preview</h4>
+    <hr/>
+    <iframe src="{% url 'archive:preview' path=resource.path%}" style="width:420px; height: 560px; border: none;" >
+    </iframe>
+</div>
+
+<div class="col-md-6">
+    <h4>Metadata</h4>
+    <hr/>
+    <table class="table table-">
+    <tbody>
+        <tr><th style="border-bottom: solid 2px #eee;" colspan="2">Core metadata</th></tr>
+        <tr>
+            <th>Name</th>
+            <td>{{resource.name}}</td>
+        </tr>
+        <tr>
+            <th>Mimetype</th>
+            <td>{{resource.mimetype|default:"Not set"}}</td>
+        </tr>
+        {% if resource.size %}
+        <tr>
+            <th>Size (in bytes)</th>
+            <td>{{resource.size|default:"Not set"}}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <th>Collection</th>
+            <td><a href="/archive/view{{ container_path }}">{{ container.name }}</a></td>
+        </tr>
+        {% if resource.create_ts %}
+        <tr>
+            <th>Created date/time</th>
+            <td>{{resource.create_ts}}</td>
+        </tr>
+        {% endif %}
+        {% if resource.modified_ts %}
+        <tr>
+            <th>Modified date/time</th>
+            <td>{{resource.modified_ts}}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <th>CDMI URL:</th>
+            <td><a href='{% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}/api/cdmi{{resource.path}}'>
+              {% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}/api/cdmi{{resource.path}}
+               </a></td>
+        </tr>
+        {% if resource.is_reference %}
+            <tr>
+                <th>Reference:</th>
+                <td><a href="{{resource.url}}">{{resource.url}}</a></td>
+            </tr>
+        {% endif %}
+        
+       {% if request.user.administrator and not resource.is_reference %}
+        <tr>
+            <th>Internal URL</th>
+            <td>{{resource.url}}</td>
+        </tr>
+        {% endif %}
+        {% if resource.metadata|length %}
+            <tr><th style="border-bottom: solid 2px #eee;" colspan="2">Custom metadata</th></tr>
+        {% endif %}
+        {% for row in resource.metadata %}
+        <tr>
+          <th>
+            {% if row.0|length > 10 %}
+              <span data-toggle="tooltip" title="{{ row.0 }}">...</span>
+            {% else %}
+              {{ row.0 }}
+            {% endif %}
+          </th>
+          <td>
+            {% if row.1|length > 10 %}
+              <span data-toggle="tooltip" title="{{ row.1 }}">...</span>
+            {% else %}
+              {{ row.1 }}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock main_content %}
+
+

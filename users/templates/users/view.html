@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load gravatar %}
+
+{% block title %}Users - {{user_obj.name}}{% endblock title %}
+
+{% block sidebar %}
+    {% include "snippets/sidenav.html" with active="users" %}
+{% endblock sidebar %}
+
+
+{% block main_content %}
+    <h2>{% gravatar user_obj.email 40 %} {{ user_obj.name }}</h2>
+
+    <hr/>
+    <h3>Profile</h3>
+
+    <div>
+        {% if req_user.administrator %}
+          <div>
+              <strong>Active:</strong> <input type="checkbox" name="active" {% if user_obj.active %}checked{% endif %} readonly />
+          </div>
+          <div>
+              <strong>Administrator:</strong> <input type="checkbox" name="active" {% if user_obj.administrator %}checked{% endif %} readonly/>
+          </div>
+        {% endif %}
+        
+        <div>
+            <strong>Email:</strong> {{ user_obj.email|default:"Private"}}
+        </div>
+        
+        {% if req_user.administrator %}
+        <div>
+          <strong>Groups:</strong>
+          <ul>
+          {% for g in groups %}
+            <li>
+              <a href="{% url 'groups:view' name=g.name %}">{{g.name}}</a>
+            </li>
+          {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+    </div>
+
+
+{% endblock main_content %}

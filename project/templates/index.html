@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Home{% endblock title %}
+
+{% block content %}
+
+<div class="container">
+<div style="margin-top: 140px; margin-bottom: 80px; text-align:center;">
+
+    <div class="col-md-12">
+        <img src="{% static 'img/home.png' %}"/>
+    </div>
+    <br/>
+    <div class="row" stlye="margin-top: 80px;">
+      <div class="col-md-12" >
+          <a class="btn btn-success" href="{% url 'users:auth_login' %}">Login</a>
+      </div>
+    </div>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,51 @@
+
+<div class="resource-entry">
+
+  <div class="row">
+      {% if resource.can_delete %}
+        <a href="{% url 'archive:delete_resource' path=resource.path %}">
+        <i class="blue-icon glyphicon glyphicon glyphicon-remove-circle"></i>
+        &nbsp;&nbsp;
+        </a>
+      {% endif %}
+      {% if resource.can_read %}
+      <i class="label label-info">{{resource.type|default:"Unknown"}}</i>
+      &nbsp;
+      <a href="{% url 'archive:resource_view' path=resource.path %}">
+        {{ resource.name }}
+      </a>
+      {% else %}
+        <span style="color: #999">
+         <i class="label label-default">{{resource.type|default:"Unknown"}}</i>
+         &nbsp;
+        {{ resource.name }}
+        </span>
+      {% endif %}
+
+      {% if resource.can_read %}
+      <a class="pull-right" href="{% url 'archive:download' path=resource.path%}" >
+      Download  <i class="glyphicon glyphicon-download-alt"></i>
+      </a>
+      {% endif %}
+  </div>
+
+  {% if resource.metadata %}
+      {% if resource.can_read %}
+        <div class="row">
+        {% for m in resource.metadata %}
+          {% if m.0|length > 10 or m.1|length > 10 %}
+            <span class="label label-{% if not resource.can_read %}default{% else %}success{% endif %}" data-toggle="tooltip" title="{{ m.0 }} = {{ m.1 }}">
+                 ...
+            </span>&nbsp;&nbsp;
+          {% else %}
+             <span class="label label-{% if not resource.can_read %}default{% else %}success{% endif %}">
+             {{ m.0 }} = {{ m.1 }}
+             </span>&nbsp;&nbsp;
+          {% endif %}
+        {% endfor %}
+        </div>
+     {% endif %}
+  {% endif %}
+</div>
+<hr/>
+
