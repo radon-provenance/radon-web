@@ -13,32 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from django.conf.urls import (
-    url,
-    include
-)
+from django.conf.urls import url, include
 from rest_framework.urlpatterns import format_suffix_patterns
 
 
-from rest_admin.views import (
-    authenticate,
-    group,
-    groups,
-    home,
-    user,
-    users
-)
+from rest_admin.views import authenticate, group, groups, home, user, users
 
 app_name = "rest_admin"
 
 urlpatterns = [
-   url(r'^authenticate$', authenticate),
-   url(r'^users/(?P<username>.*)', user),
-   url(r'^users', users),
-   url(r'^groups/(?P<groupname>.*)', group),
-   url(r'^groups', groups),
-   url(r'^$', home),
-   
+    url(r"^authenticate$", authenticate),
+    url(r"^users/(?P<username>.*)", user),
+    url(r"^users", users),
+    url(r"^groups/(?P<groupname>.*)", group),
+    url(r"^groups", groups),
+    url(r"^$", home),
 ]
 
 

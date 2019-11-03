@@ -19,10 +19,13 @@ from django.contrib.auth.models import AnonymousUser
 
 
 def home(request):
-    if not isinstance(request.user, AnonymousUser) and \
-        request.user and request.user.is_authenticated():
-        return redirect('archive:home')
-    return render(request, 'index.html', {})
+    if (
+        not isinstance(request.user, AnonymousUser)
+        and request.user
+        and request.user.is_authenticated()
+    ):
+        return redirect("archive:home")
+    return render(request, "index.html", {})
 
 
 def index(request):

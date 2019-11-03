@@ -21,18 +21,18 @@ from django.http import Http404
 from django.contrib import messages
 from django.conf import settings
 
-from radon.models import (
-    Group,
-    User
-)
+from radon.models import Group, User
 import ldap
 
 from users.forms import UserForm
 
+
 def notify_agent(user_id, event=""):
     from nodes.client import choose_client
+
     client = choose_client()
     client.notify(user_id, event)
+
 
 @login_required
 def home(request):
@@ -40,7 +40,7 @@ def home(request):
     user_objs = list(User.objects.all())
 
     paginator = Paginator(user_objs, 10)
-    page = request.GET.get('page')
+    page = request.GET.get("page")
     try:
         users = paginator.page(page)
     except PageNotAnInteger:
@@ -50,22 +50,19 @@ def home(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         users = paginator.page(paginator.num_pages)
 
-    ctx = {
-        "user": request.user,
-        "users": users,
-        "user_count": len(user_objs)
-    }
-    return render(request, 'users/index.html', ctx)
+    ctx = {"user": request.user, "users": users, "user_count": len(user_objs)}
+    return render(request, "users/index.html", ctx)
+
 
 def userlogin(request):
     from django.contrib.auth import login
 
     if request.method == "GET":
-        return render(request, 'users/login.html', {})
+        return render(request, "users/login.html", {})
 
     errors = ""
-    username = request.POST.get('username')
-    password = request.POST.get('password')
+    username = request.POST.get("username")
+    password = request.POST.get("password")
 
     invalid = "Username/Password not valid"
 
@@ -77,19 +74,21 @@ def userlogin(request):
         if not user:
             errors = invalid
         else:
-            if not user.authenticate(password) and not ldapAuthenticate(username, password):
+            if not user.authenticate(password) and not ldapAuthenticate(
+                username, password
+            ):
                 errors = invalid
-        
+
         if not errors:
-            request.session['user'] = user.name
+            request.session["user"] = user.name
             return redirect("/")
 
     ctx = {}
     if errors:
-        ctx = {'errors': errors}
+        ctx = {"errors": errors}
 
+    return render(request, "users/login.html", ctx)
 
-    return render(request, 'users/login.html', ctx)
 
 def ldapAuthenticate(username, password):
     if settings.AUTH_LDAP_SERVER_URI is None:
@@ -122,16 +121,18 @@ def delete_user(request, name):
 
     if request.method == "POST":
         user.delete(username=request.user.name)
-        messages.add_message(request, messages.INFO,
-                             "The user '{}' has been deleted".format(user.name))
-        return redirect('users:home')
+        messages.add_message(
+            request, messages.INFO, "The user '{}' has been deleted".format(user.name)
+        )
+        return redirect("users:home")
 
     # Requires delete on user
     ctx = {
         "user": user,
     }
 
-    return render(request, 'users/delete.html', ctx)
+    return render(request, "users/delete.html", ctx)
+
 
 @login_required
 def edit_user(request, name):
@@ -147,21 +148,23 @@ def edit_user(request, name):
         form = UserForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            user.update(email=data['email'],
-                        administrator=data['administrator'],
-                        active=data['active'],
-                        username=request.user.name)
+            user.update(
+                email=data["email"],
+                administrator=data["administrator"],
+                active=data["active"],
+                username=request.user.name,
+            )
             if data["password"] != user.password:
-                user.update(password=data["password"],
-                            username=request.user.name)
-            return redirect('users:home')
+                user.update(password=data["password"], username=request.user.name)
+            return redirect("users:home")
     else:
-        initial_data = {'username': user.name,
-                        'email': user.email,
-                        'administrator': user.administrator,
-                        "active": user.active,
-                        "password": user.password
-                       }
+        initial_data = {
+            "username": user.name,
+            "email": user.email,
+            "administrator": user.administrator,
+            "active": user.active,
+            "password": user.password,
+        }
         form = UserForm(initial=initial_data)
 
     ctx = {
@@ -169,49 +172,56 @@ def edit_user(request, name):
         "user": user,
     }
 
-    return render(request, 'users/edit.html', ctx)
+    return render(request, "users/edit.html", ctx)
 
 
 @login_required
 def new_user(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = UserForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            user = User.create(name=data.get("username"),
-                        # TODO: Check if we can't harmonize unicode use for passwords between django and CLI
-                        password=data.get("password").encode("ascii", "ignore"),
-                        email=data.get("email", ""),
-                        administrator=data.get("administrator", False),
-                        active=data.get("active", False),
-                        username=request.user.name)
-            messages.add_message(request, messages.INFO,
-                             "The user '{}' has been created".format(user.name))
-            return redirect('users:home')
+            user = User.create(
+                name=data.get("username"),
+                # TODO: Check if we can't harmonize unicode use for passwords between django and CLI
+                password=data.get("password").encode("ascii", "ignore"),
+                email=data.get("email", ""),
+                administrator=data.get("administrator", False),
+                active=data.get("active", False),
+                username=request.user.name,
+            )
+            messages.add_message(
+                request,
+                messages.INFO,
+                "The user '{}' has been created".format(user.name),
+            )
+            return redirect("users:home")
     else:
         form = UserForm()
 
     ctx = {
         "form": form,
     }
-    return render(request, 'users/new.html', ctx)
+    return render(request, "users/new.html", ctx)
+
 
 def userlogout(request):
     request.session.flush()
     request.user = None
-    return render(request, 'users/logout.html', {})
+    return render(request, "users/logout.html", {})
+
 
 @login_required
 def user_view(request, name):
     # argument is the login name, not the uuid in Cassandra
     user = User.find(name)
     if not user:
-        return redirect('users:home')
-        #raise Http404
+        return redirect("users:home")
+        # raise Http404
 
     ctx = {
         "req_user": request.user,
         "user_obj": user,
-        "groups": [Group.find(gname) for gname in user.groups]
+        "groups": [Group.find(gname) for gname in user.groups],
     }
-    return render(request, 'users/view.html', ctx)
+    return render(request, "users/view.html", ctx)

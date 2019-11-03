@@ -18,22 +18,20 @@ from django.utils.deprecation import MiddlewareMixin
 
 
 class CassandraAuth(MiddlewareMixin):
-
     def process_request(self, request):
         from radon.models import User
 
-        username = request.session.get('user')
+        username = request.session.get("user")
         if not username:
             return None
 
         # Cache the user rather than hitting the database for
         # each request.  We can also invalidate the entry if the
         # user is marked as inactive.
-        user = cache.get('user_{}'.format(username), None)
+        user = cache.get("user_{}".format(username), None)
         if not user:
             user = User.find(username)
         request.user = user
-        cache.set('user_{}'.format(username), user, 60)
+        cache.set("user_{}".format(username), user, 60)
 
         return None
-

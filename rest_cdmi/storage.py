@@ -17,7 +17,11 @@ import re
 from collections import OrderedDict
 
 from rest_cdmi.capabilities import (
-    StorageSystemMetadataCapabilities, ContainerCapabilities, DataObjectCapabilities)
+    StorageSystemMetadataCapabilities,
+    ContainerCapabilities,
+    DataObjectCapabilities,
+)
+
 
 class CDMIDataAccessObject(object):
     """CDMI Data Access Object to interact with a data store.
@@ -27,7 +31,7 @@ class CDMIDataAccessObject(object):
     """
 
     def __init__(self, config):
-        #super(CDMIDataAccessObject, self).__init__(config)
+        # super(CDMIDataAccessObject, self).__init__(config)
         self.metdataCapabilities = StorageSystemMetadataCapabilities(
             cdmi_acl=False,
             cdmi_size=False,
@@ -35,7 +39,7 @@ class CDMIDataAccessObject(object):
             cdmi_atime=False,
             cdmi_mtime=False,
             cdmi_acount=False,
-            cdmi_mcount=False
+            cdmi_mcount=False,
         )
         self.containerCapabilities = ContainerCapabilities(
             cdmi_create_container=False,
@@ -51,7 +55,7 @@ class CDMIDataAccessObject(object):
             cdmi_post_dataobject=False,
             cdmi_create_reference=False,
             cdmi_copy_dataobject=False,
-            cdmi_move_dataobject=False
+            cdmi_move_dataobject=False,
         )
         self.dataObjectCapabilities = DataObjectCapabilities(
             cdmi_read_metadata=False,
@@ -59,7 +63,7 @@ class CDMIDataAccessObject(object):
             cdmi_read_value_range=False,
             cdmi_modify_metadata=False,
             cdmi_modify_value=False,
-            cdmi_delete_dataobject=False
+            cdmi_delete_dataobject=False,
         )
 
     def _CDMIify_metadata(self, metadata):
@@ -75,7 +79,7 @@ class CDMIDataAccessObject(object):
             if not k.startswith(METADATA_PREFIX):
                 # Replace keys containing internally used "alloy_" prefix  with
                 # CDMI mandated reversed URL style prefixes
-                cdmi_k = re.sub('^alloy', METADATA_PREFIX, k, 1)
+                cdmi_k = re.sub("^alloy", METADATA_PREFIX, k, 1)
             else:
                 cdmi_k = k
             cdmi_md[cdmi_k] = val
@@ -91,7 +95,7 @@ class CDMIDataAccessObject(object):
         """
         store_md = {}
         for k, val in metadata.iteritems():
-            if k.startswith('cdmi_'):
+            if k.startswith("cdmi_"):
                 # cdmi_ values are prohibited by CDMI spec for user-defined
                 # metadata
                 continue

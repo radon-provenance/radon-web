@@ -21,19 +21,17 @@ from django.views.generic.base import RedirectView
 from project.views import home
 
 urlpatterns = [
-    
-    url(r'^favicon\.ico$', RedirectView.as_view(url='/static/img/favicon.ico')),
-#    url(r'^admin/', admin.site.urls),
-
-    url(r'^$', home, name='home'),
-    url(r'^activity/', include('activity.urls', namespace="activity")),
-    url(r'^archive/', include('archive.urls', namespace="archive")),
-    url(r'^groups/', include('groups.urls', namespace="groups")),
-    url(r'^users/', include('users.urls', namespace="users")),
-
-    url(r'^about$', TemplateView.as_view(template_name='about.html'), name='about'),
-    url(r'^contact$', TemplateView.as_view(template_name='contact.html'), name='contact'),
-
-    url(r'^api/cdmi/', include('rest_cdmi.urls', namespace="rest_cdmi")),
-    url(r'^api/admin/', include('rest_admin.urls', namespace="rest_admin")),
+    url(r"^favicon\.ico$", RedirectView.as_view(url="/static/img/favicon.ico")),
+    #    url(r'^admin/', admin.site.urls),
+    url(r"^$", home, name="home"),
+    url(r"^activity/", include("activity.urls", namespace="activity")),
+    url(r"^archive/", include("archive.urls", namespace="archive")),
+    url(r"^groups/", include("groups.urls", namespace="groups")),
+    url(r"^users/", include("users.urls", namespace="users")),
+    url(r"^about$", TemplateView.as_view(template_name="about.html"), name="about"),
+    url(
+        r"^contact$", TemplateView.as_view(template_name="contact.html"), name="contact"
+    ),
+    url(r"^api/cdmi/", include("rest_cdmi.urls", namespace="rest_cdmi")),
+    url(r"^api/admin/", include("rest_admin.urls", namespace="rest_admin")),
 ]

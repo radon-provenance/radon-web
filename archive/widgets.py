@@ -56,24 +56,28 @@ class JsonPairInputs(Widget):
         attrs (dict) -- automatically passed in by django (unused in this function)
         """
 
-        if (not value) or value.strip() is '': value = '{"":""}'
-        #twotuple = json.loads(force_unicode(value))
+        if (not value) or value.strip() is "":
+            value = '{"":""}'
+        # twotuple = json.loads(force_unicode(value))
         twotuple = json.loads(value)
 
         if isinstance(twotuple, dict):
-            twotuple = [(k,v,) for k,v in twotuple.items()]
+            twotuple = [(k, v,) for k, v in twotuple.items()]
         if not twotuple:
-            twotuple = [("","")]
+            twotuple = [("", "")]
 
-        ret = ''
+        ret = ""
         if value and len(value) > 0:
             for k, v in twotuple:
-                ctx = {'key':k,
-                       'value':v,
-                       'fieldname':name,
-                       'key_attrs': flatatt(self.key_attrs),
-                       'val_attrs': flatatt(self.val_attrs) }
-                ret += """
+                ctx = {
+                    "key": k,
+                    "value": v,
+                    "fieldname": name,
+                    "key_attrs": flatatt(self.key_attrs),
+                    "val_attrs": flatatt(self.val_attrs),
+                }
+                ret += (
+                    """
                     <div class="form-group" id="">
                         <div class="col-md-4">
                             <input placeholder="Key" class="form-control" type="text" name="json_key[%(fieldname)s]" value="%(key)s" %(key_attrs)s>
@@ -94,8 +98,10 @@ class JsonPairInputs(Widget):
                         </div>
                         <div class="clearfix"></div>
                     </div>
-                    """ % ctx
-        ret = '<span id="metadata_fields">' + ret + '</span>'
+                    """
+                    % ctx
+                )
+        ret = '<span id="metadata_fields">' + ret + "</span>"
         return mark_safe(ret)
 
     def value_from_datadict(self, data, files, name):
@@ -110,12 +116,12 @@ class JsonPairInputs(Widget):
 
         """
         jsontext = ""
-        if ('json_key[%s]' % name) in data and ('json_value[%s]' % name) in data:
-            keys     = data.getlist("json_key[%s]" % name)
-            values   = data.getlist("json_value[%s]" % name)
+        if ("json_key[%s]" % name) in data and ("json_value[%s]" % name) in data:
+            keys = data.getlist("json_key[%s]" % name)
+            values = data.getlist("json_value[%s]" % name)
             twotuple = []
             for key, value in zip(keys, values):
                 if len(key) > 0:
-                    twotuple += [(key,value)]
+                    twotuple += [(key, value)]
             jsontext = json.dumps(twotuple)
         return jsontext

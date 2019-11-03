@@ -20,5 +20,5 @@ from activity.views import home
 app_name = "activity"
 
 urlpatterns = [
-    url(r'^$', home, name='home'),
+    url(r"^$", home, name="home"),
 ]

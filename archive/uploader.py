@@ -16,10 +16,7 @@ limitations under the License.
 from io import StringIO
 import hashlib
 from django.conf import settings
-from django.core.files.uploadhandler import (
-    FileUploadHandler,
-    StopFutureHandlers
-)
+from django.core.files.uploadhandler import FileUploadHandler, StopFutureHandlers
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from radon.models import DataObject
@@ -27,10 +24,17 @@ from radon.models import DataObject
 
 class AgentUploader(FileUploadHandler):
 
-    chunk_size = 1048576 # 1 Mb chunks
+    chunk_size = 1048576  # 1 Mb chunks
 
-    def new_file(self, field_name, file_name, content_type, content_length,
-                 charset, content_type_extra):
+    def new_file(
+        self,
+        field_name,
+        file_name,
+        content_type,
+        content_length,
+        charset,
+        content_type_extra,
+    ):
         """
         A new file is starting, we should prep Cassandra for a new upload
         """
@@ -53,7 +57,9 @@ class AgentUploader(FileUploadHandler):
             data_object = DataObject.create(raw_data, settings.COMPRESS_UPLOADS)
             self.uuid = data_object.uuid
         else:
-            DataObject.append_chunk(self.uuid, raw_data, self.seq_number, settings.COMPRESS_UPLOADS)
+            DataObject.append_chunk(
+                self.uuid, raw_data, self.seq_number, settings.COMPRESS_UPLOADS
+            )
         self.seq_number += 1
 
         self.hasher.update(raw_data)
@@ -69,10 +75,12 @@ class AgentUploader(FileUploadHandler):
         """
         print("File upload complete with {} bytes".format(file_size))
 
-        uploaded = CassandraUploadedFile(name=self.file_name,
-                                         content=self.uuid,
-                                         content_type=self.content_type,
-                                         length=file_size)
+        uploaded = CassandraUploadedFile(
+            name=self.file_name,
+            content=self.uuid,
+            content_type=self.content_type,
+            length=file_size,
+        )
         return uploaded
 
 
@@ -82,6 +90,8 @@ class CassandraUploadedFile(InMemoryUploadedFile):
     In this particular case we are just storing the blob ID as content rather than
     the actual content.
     """
+
     def __init__(self, name, content, content_type, length):
-        super(CassandraUploadedFile, self).__init__(StringIO(content), None, name,
-                                                 content_type, length, None, None)
+        super(CassandraUploadedFile, self).__init__(
+            StringIO(content), None, name, content_type, length, None, None
+        )

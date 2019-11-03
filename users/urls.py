@@ -20,14 +20,11 @@ from . import views
 app_name = "users"
 
 urlpatterns = [
-    url(r'^$', views.home, name='home'),
-    url(r'^login$', views.userlogin, name='auth_login'),
-    url(r'^logout$', views.userlogout, name='auth_logout'),
-    
-    url(r'^new/user$', views.new_user, name='new_user'),
-    url(r'^delete/user/(?P<name>.*)$', views.delete_user, name='delete_user'),
-    url(r'^edit/user/(?P<name>.*)$', views.edit_user, name='edit_user'),
-    
-    url(r'^(?P<name>.*)$', views.user_view, name='view'),
-
+    url(r"^$", views.home, name="home"),
+    url(r"^login$", views.userlogin, name="auth_login"),
+    url(r"^logout$", views.userlogout, name="auth_logout"),
+    url(r"^new/user$", views.new_user, name="new_user"),
+    url(r"^delete/user/(?P<name>.*)$", views.delete_user, name="delete_user"),
+    url(r"^edit/user/(?P<name>.*)$", views.edit_user, name="edit_user"),
+    url(r"^(?P<name>.*)$", views.user_view, name="view"),
 ]

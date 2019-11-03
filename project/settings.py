@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'y7mh)k%0gu=c+btqq@ds1mw$ba+pkwmzut_avx-%0*k-g65xd1'
+SECRET_KEY = "y7mh)k%0gu=c+btqq@ds1mw$ba+pkwmzut_avx-%0*k-g65xd1"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -34,52 +34,50 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'project.apps.RadonAppConfig',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django_gravatar',
-    'rest_framework',
-
-    'activity',
-    'archive',
-    'groups',
-    'users',
-
-    'rest_cdmi',
-    'rest_admin'
+    "project.apps.RadonAppConfig",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django_gravatar",
+    "rest_framework",
+    "activity",
+    "archive",
+    "groups",
+    "users",
+    "rest_cdmi",
+    "rest_admin",
 ]
 
-DEFAULT_APP_CONFIG = 'project.RadonAppConfig'
+DEFAULT_APP_CONFIG = "project.RadonAppConfig"
 COMPRESS_UPLOADS = False
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'users.middleware.CassandraAuth',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "users.middleware.CassandraAuth",
 ]
 
-ROOT_URLCONF = 'project.urls'
+ROOT_URLCONF = "project.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
@@ -95,7 +93,7 @@ ADMIN_SERVER = {
     "endpoint": "http://127.0.0.1/api/admin",
 }
 
-WSGI_APPLICATION = 'project.wsgi.application'
+WSGI_APPLICATION = "project.wsgi.application"
 
 FILE_UPLOAD_HANDLERS = ("archive.uploader.AgentUploader",)
 
@@ -103,14 +101,14 @@ FILE_UPLOAD_HANDLERS = ("archive.uploader.AgentUploader",)
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
 
-LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/users/login'
+LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/users/login"
 
 
 # Password validation
@@ -118,29 +116,27 @@ LOGIN_URL = '/users/login'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
 ]
 
 
 # LDAP server configuration.
-AUTH_LDAP_SERVER_URI = os.getenv('AUTH_LDAP_SERVER_URI', None) # ldap://ldap.example.com
-AUTH_LDAP_USER_DN_TEMPLATE = os.getenv('AUTH_LDAP_USER_DN_TEMPLATE', None) # "uid=%(user)s,ou=users,dc=example,dc=com"
+AUTH_LDAP_SERVER_URI = os.getenv(
+    "AUTH_LDAP_SERVER_URI", None
+)  # ldap://ldap.example.com
+AUTH_LDAP_USER_DN_TEMPLATE = os.getenv(
+    "AUTH_LDAP_USER_DN_TEMPLATE", None
+)  # "uid=%(user)s,ou=users,dc=example,dc=com"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = 'en-gb'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = "en-gb"
+TIME_ZONE = "UTC"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -149,18 +145,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-#        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication'
-        #"users.middleware.CassandraAuthentication"
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        #        'rest_framework.authentication.SessionAuthentication',
+        "rest_framework.authentication.BasicAuthentication"
+        # "users.middleware.CassandraAuthentication"
     ],
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.AllowAny'
-    #]
+    #     'DEFAULT_PERMISSION_CLASSES': [
+    #         'rest_framework.permissions.AllowAny'
+    # ]
 }
-

@@ -15,14 +15,11 @@ limitations under the License.
 
 from django.apps import AppConfig
 
-from radon.models import (
-    Collection,
-    initialise
-)
+from radon.models import Collection, initialise
 
 
 class RadonAppConfig(AppConfig):
-    name = 'project'
+    name = "project"
     verbose_name = "Radon"
 
     def ready(self):
@@ -30,4 +27,3 @@ class RadonAppConfig(AppConfig):
 
         # Try to get the root. It will create it if it doesn't exist
         root = Collection.get_root()
-
