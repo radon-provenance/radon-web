@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@ limitations under the License.
 
 from django import template
 from django.shortcuts import render
-from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 
 from radon.models import Collection, Group, Notification, Resource, User
@@ -25,36 +24,36 @@ from radon.models.notification import (
     OBJ_USER,
     OBJ_GROUP,
     OP_CREATE,
-    OP_DELETE,
     OP_UPDATE,
 )
 
 
 @login_required
 def home(request):
+    """Default view for Activities"""
     notifications = Notification.recent(10)
     activities = []
     for notif in notifications:
-        t = template.Template(notif["tmpl"])
+        tmpl = template.Template(notif["tmpl"])
 
         obj_uuid = notif["object_uuid"]
-        object = None
+        obj = None
         if notif["object_type"] == OBJ_RESOURCE:
-            object = Resource.find(obj_uuid)
-            if object:
-                object_dict = object.to_dict()
+            obj = Resource.find(obj_uuid)
+            if obj:
+                object_dict = obj.to_dict()
             else:
                 object_dict = {"name": obj_uuid}
         elif notif["object_type"] == OBJ_COLLECTION:
-            object = Collection.find(obj_uuid)
-            if object:
-                object_dict = object.to_dict()
+            obj = Collection.find(obj_uuid)
+            if obj:
+                object_dict = obj.to_dict()
             else:
                 object_dict = {"name": obj_uuid}
         elif notif["object_type"] == OBJ_USER:
-            object = User.find(obj_uuid)
-            if object:
-                object_dict = object.to_dict()
+            obj = User.find(obj_uuid)
+            if obj:
+                object_dict = obj.to_dict()
             else:
                 # User has been deleted it can't be find by uuid
                 # look in payload of the message to get the name
@@ -64,9 +63,9 @@ def home(request):
                     name = notif["payload"]["pre"]["name"]
                 object_dict = {"name": name}
         elif notif["object_type"] == OBJ_GROUP:
-            object = Group.find(obj_uuid)
-            if object:
-                object_dict = object.to_dict()
+            obj = Group.find(obj_uuid)
+            if obj:
+                object_dict = obj.to_dict()
             else:
                 # User has been deleted it can't be find by uuid
                 # look in payload of the message to get the name
@@ -84,6 +83,6 @@ def home(request):
         variables = {"user": user_dict, "when": notif["when"], "object": object_dict}
 
         ctx = template.Context(variables)
-        activities.append({"html": t.render(ctx)})
+        activities.append({"html": tmpl.render(ctx)})
 
     return render(request, "activity/index.html", {"activities": activities})
