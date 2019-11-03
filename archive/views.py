@@ -34,13 +34,6 @@ from archive.forms import (
     ResourceNewForm,
 )
 
-from activity.signals import (
-    new_resource_signal,
-    new_collection_signal,
-    edited_resource_signal,
-    edited_collection_signal,
-)
-
 from radon.models import Collection, Group, Resource, SearchIndex
 from radon.models.errors import CollectionConflictError, ResourceConflictError
 from radon.metadata import get_resource_keys, get_collection_keys
