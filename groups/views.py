@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ from radon.models import Group, User
 
 @login_required
 def add_user(request, name):
+    """Add a user to a group"""
     group = Group.find(name)
     if not group:
         raise Http404
@@ -37,7 +38,7 @@ def add_user(request, name):
         if form.is_valid():
             data = form.cleaned_data
             new_users = data.get("users", [])
-            added, not_added, already_there = group.add_users(new_users)
+            added, _, _ = group.add_users(new_users)
             if added:
                 msg = "{} has been added to the group '{}'".format(
                     ", ".join(added), group.name
@@ -57,6 +58,7 @@ def add_user(request, name):
 
 @login_required
 def delete_group(request, name):
+    """Delete a group"""
     group = Group.find(name)
     if not group:
         raise Http404
@@ -78,7 +80,7 @@ def delete_group(request, name):
 
 @login_required
 def edit_group(request, name):
-    # Requires edit on user
+    """Edit a group (add/delete users)"""
     group = Group.find(name)
     if not group:
         raise Http404()
@@ -106,7 +108,7 @@ def edit_group(request, name):
 
 @login_required
 def group_view(request, name):
-    # argument is the name in Cassandra
+    """Display the content of a group (users)"""
     group = Group.find(name)
     if not group:
         return redirect("groups:home")
@@ -117,7 +119,7 @@ def group_view(request, name):
 
 @login_required
 def home(request):
-    # TODO: Order by groupname
+    """"Display the main page fro groups (list of clickable groups)"""
     group_objs = list(Group.objects.all())
 
     paginator = Paginator(group_objs, 10)
@@ -137,6 +139,7 @@ def home(request):
 
 @login_required
 def new_group(request):
+    """Display the form to create a new group"""
     if request.method == "POST":
         form = GroupForm(request.POST)
         if form.is_valid():
@@ -157,15 +160,9 @@ def new_group(request):
     return render(request, "groups/new.html", ctx)
 
 
-def notify_agent(user_id, event=""):
-    from nodes.client import choose_client
-
-    client = choose_client()
-    client.notify(user_id, event)
-
-
 @login_required
 def rm_user(request, name, uname):
+    """Remove a user from a group"""
     group = Group.find(name)
     user = User.find(uname)
     if not request.user.administrator:

@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@ from django import forms
 
 
 class GroupForm(forms.Form):
+    """The collection of fields to display a group"""
 
     name = forms.CharField(label="Username", max_length=100, required=True)
 
 
 class GroupAddForm(forms.Form):
+    """The collection of fields to add a group"""
     def __init__(self, users, *args, **kwargs):
         super(GroupAddForm, self).__init__(*args, **kwargs)
         self.fields["users"] = forms.MultipleChoiceField(
