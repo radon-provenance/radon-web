@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@ limitations under the License.
 """
 
 from django.conf.urls import include, url
-from django.contrib import admin
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 
@@ -22,7 +21,7 @@ from project.views import home
 
 urlpatterns = [
     url(r"^favicon\.ico$", RedirectView.as_view(url="/static/img/favicon.ico")),
-    #    url(r'^admin/', admin.site.urls),
+    
     url(r"^$", home, name="home"),
     url(r"^activity/", include("activity.urls", namespace="activity")),
     url(r"^archive/", include("archive.urls", namespace="archive")),

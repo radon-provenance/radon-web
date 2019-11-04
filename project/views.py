@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import AnonymousUser
 
 
 def home(request):
+    """Main view for the radon web interface"""
     if (
         not isinstance(request.user, AnonymousUser)
         and request.user
@@ -26,7 +26,3 @@ def home(request):
     ):
         return redirect("archive:home")
     return render(request, "index.html", {})
-
-
-def index(request):
-    return HttpResponse("Hello, world!")

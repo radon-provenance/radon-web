@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,11 +19,14 @@ from radon.models import Collection, initialise
 
 
 class RadonAppConfig(AppConfig):
+    """The Radon application. We need to initialise Cassandra connection when
+    the server is started"""
+
     name = "project"
     verbose_name = "Radon"
 
     def ready(self):
         initialise()
 
-        # Try to get the root. It will create it if it doesn't exist
-        root = Collection.get_root()
+        # Try to get the root. It will be created if it doesn't exist
+        Collection.get_root()
