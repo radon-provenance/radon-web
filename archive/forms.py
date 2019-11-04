@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from django import forms
+
 import json
+from django import forms
 
 from radon.metadata import get_collection_validator, get_resource_validator
+from radon.models import Group
 
 from archive.widgets import JsonPairInputs
 
 
 def get_groups():
-    from radon.models import Group
+    """Get all the groups defined in the system, adding special groups
+    authenticated and anonymous"""
 
     return [(u"AUTHENTICATED@", "authenticated@"), (u"ANONYMOUS@", "anonymous@")] + [
         (g.name, g.name,) for g in Group.objects.all()
@@ -30,6 +33,8 @@ def get_groups():
 
 
 class CollectionForm(forms.Form):
+    """A form to edit a collection"""
+
     groups = get_groups
 
     metadata = forms.CharField(
@@ -49,10 +54,11 @@ class CollectionForm(forms.Form):
     )
 
     def clean_metadata(self):
+        """"Validate metadata"""
         data = self.cleaned_data["metadata"]
         dct = {}
-        for l in json.loads(data):
-            dct[l[0]] = l[1]
+        for data_list in json.loads(data):
+            dct[data_list[0]] = data_list[1]
 
         ok, errs = get_collection_validator().validate(dct)
         if not ok:
@@ -61,10 +67,14 @@ class CollectionForm(forms.Form):
 
 
 class CollectionNewForm(CollectionForm):
+    """A form to create a collection"""
+
     name = forms.CharField(label="Collection name", max_length=100, required=True)
 
 
 class ResourceForm(forms.Form):
+    """A form to edit a resource"""
+
     groups = get_groups
 
     metadata = forms.CharField(
@@ -84,6 +94,7 @@ class ResourceForm(forms.Form):
     )
 
     def clean_metadata(self):
+        """"Validate metadata"""
         data = self.cleaned_data["metadata"]
         dct = {}
         for l in json.loads(data):
@@ -96,5 +107,7 @@ class ResourceForm(forms.Form):
 
 
 class ResourceNewForm(ResourceForm):
+    """A form to create a resource"""
+
     name = forms.CharField(label="Item name", max_length=100, required=True)
     file = forms.FileField(required=True)

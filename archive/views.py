@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ limitations under the License.
 import collections
 import json
 import requests
-import os
 from django.http import (
     StreamingHttpResponse,
     Http404,
@@ -40,24 +39,9 @@ from radon.metadata import get_resource_keys, get_collection_keys
 from radon.util import merge
 
 
-def notify_agent(resource_id, event=""):
-    from nodes.client import choose_client
-
-    client = choose_client()
-    client.notify(resource_id, event)
-
-
-# TODO: Move this to a helper
-def get_extension(name):
-    _, ext = os.path.splitext(name)
-    if ext:
-        return ext[1:].upper()
-    return "UNKNOWN"
-
-
-# noinspection PyUnusedLocal
 @login_required()
 def home(request):
+    """Display the root of the archive"""
     return redirect("archive:view", path="")
 
 
@@ -66,6 +50,7 @@ def home(request):
 ##############################################################################
 @login_required()
 def view_resource(request, path):
+    """Display the page for a resource in the archive"""
     resource = Resource.find(path)
     if not resource:
         raise Http404()
@@ -89,11 +74,11 @@ def view_resource(request, path):
 
     paths = []
     full = ""
-    for p in container.path.split("/"):
-        if not p:
+    for pth in container.path.split("/"):
+        if not pth:
             continue
-        full = u"{}/{}".format(full, p)
-        paths.append((p, full))
+        full = u"{}/{}".format(full, pth)
+        paths.append((pth, full))
 
     ctx = {
         "resource": resource.full_dict(request.user),
@@ -106,6 +91,7 @@ def view_resource(request, path):
 
 @login_required
 def new_resource(request, parent):
+    """Manage the forms to create a new resource"""
     parent_collection = Collection.find(parent)
     # Inherits perms from container by default.
     if not parent_collection:
@@ -181,6 +167,7 @@ def new_resource(request, parent):
 
 @login_required
 def edit_resource(request, path):
+    """Display the form to edit an existing resource"""
     # Requires edit on resource
     resource = Resource.find(path)
     if not resource:
@@ -246,6 +233,7 @@ def edit_resource(request, path):
 
 @login_required
 def delete_resource(request, path):
+    """Display the page to delete a resource"""
     resource = Resource.find(path)
     if not resource:
         raise Http404
@@ -279,6 +267,7 @@ def delete_resource(request, path):
 
 @login_required()
 def view_collection(request, path):
+    """Display the page which shows the subcollections/resources of a collection"""
     if not path:
         path = "/"
     collection = Collection.find(path)
@@ -318,6 +307,7 @@ def view_collection(request, path):
 
 
 def search(request):
+    """Display the search results page"""
     query = request.GET.get("q")
     collection = request.GET.get("collection")
 
@@ -338,6 +328,7 @@ def search(request):
 
 
 def search2(request):
+    """A different search page (not restricted to a collection"""
     query = request.GET.get("q")
 
     ctx = {"q": query}
@@ -353,6 +344,7 @@ def search2(request):
 
 @login_required
 def new_collection(request, parent):
+    """Display the form to create a new collection"""
     parent_collection = Collection.find(parent)
 
     if not parent_collection.user_can(request.user, "write"):
@@ -425,6 +417,7 @@ def new_collection(request, parent):
 
 @login_required
 def edit_collection(request, path):
+    """Display the form to edit an existing collection"""
     coll = Collection.find(path)
     if not coll:
         raise Http404
@@ -480,7 +473,7 @@ def edit_collection(request, path):
 
 @login_required
 def delete_collection(request, path):
-    "delete_coll"
+    """Display the page to delete a collection"""
     coll = Collection.find(path)
     if not coll:
         raise Http404
@@ -508,12 +501,7 @@ def delete_collection(request, path):
 
 @login_required
 def download(request, path):
-    """
-    Requests for download are redirected to the agent via the agent,
-    but for debugging the requests are served directly.
-
-    We will send appropriate user auth to the agent.
-    """
+    """ Download the content of a resource"""
     resource = Resource.find(path)
     if not resource:
         raise Http404

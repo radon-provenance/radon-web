@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,8 +23,14 @@ from radon.models import DataObject
 
 
 class AgentUploader(FileUploadHandler):
+    """Handles a file upload request"""
 
-    chunk_size = 1048576  # 1 Mb chunks
+    def __init__(self, *args, **kwargs):
+        super(AgentUploader, self).__init__(*args, **kwargs)
+        self.data = None
+        self.uuid = None
+        self.seq_number = 0
+        self.hasher = None
 
     def new_file(
         self,
@@ -32,8 +38,8 @@ class AgentUploader(FileUploadHandler):
         file_name,
         content_type,
         content_length,
-        charset,
-        content_type_extra,
+        charset=None,
+        content_type_extra=None,
     ):
         """
         A new file is starting, we should prep Cassandra for a new upload
@@ -63,8 +69,6 @@ class AgentUploader(FileUploadHandler):
         self.seq_number += 1
 
         self.hasher.update(raw_data)
-
-        return None
 
     def file_complete(self, file_size):
         """

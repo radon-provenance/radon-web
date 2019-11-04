@@ -138,7 +138,8 @@ disable=print-statement,
         xreadlines-attribute,
         deprecated-sys-function,
         exception-escape,
-        comprehension-escape
+        comprehension-escape,
+        C0330
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -208,8 +209,8 @@ spelling-store-unknown-words=no
 
 # List of note tags to take in consideration, separated by a comma.
 notes=FIXME,
-      XXX,
-      TODO
+      XXX
+#      TODO
 
 
 [SIMILARITIES]
@@ -365,7 +366,13 @@ function-naming-style=snake_case
 good-names=i,
            j,
            k,
+           l,
+           v,
+           md,
            ex,
+           ok,
+           x, 
+           y,
            Run,
            _
 
@@ -543,7 +550,7 @@ valid-metaclass-classmethod-first-arg=cls
 [DESIGN]
 
 # Maximum number of arguments for function / method.
-max-args=5
+max-args=7
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=7

@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ class JsonPairInputs(Widget):
         attrs (dict) -- automatically passed in by django (unused in this function)
         """
 
-        if (not value) or value.strip() is "":
+        if (not value) or value.strip() == "":
             value = '{"":""}'
         # twotuple = json.loads(force_unicode(value))
         twotuple = json.loads(value)
@@ -116,7 +116,7 @@ class JsonPairInputs(Widget):
 
         """
         jsontext = ""
-        if ("json_key[%s]" % name) in data and ("json_value[%s]" % name) in data:
+        if "json_key[%s]" % name in data and "json_value[%s]" % name in data:
             keys = data.getlist("json_key[%s]" % name)
             values = data.getlist("json_value[%s]" % name)
             twotuple = []
