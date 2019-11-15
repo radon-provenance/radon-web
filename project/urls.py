@@ -21,7 +21,6 @@ from project.views import home
 
 urlpatterns = [
     url(r"^favicon\.ico$", RedirectView.as_view(url="/static/img/favicon.ico")),
-    
     url(r"^$", home, name="home"),
     url(r"^activity/", include("activity.urls", namespace="activity")),
     url(r"^archive/", include("archive.urls", namespace="archive")),
