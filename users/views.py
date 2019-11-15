@@ -27,13 +27,6 @@ import ldap
 from users.forms import UserForm
 
 
-def notify_agent(user_id, event=""):
-    from nodes.client import choose_client
-
-    client = choose_client()
-    client.notify(user_id, event)
-
-
 @login_required
 def home(request):
     # TODO: Order by username
