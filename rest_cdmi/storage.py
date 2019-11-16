@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,9 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import re
-from collections import OrderedDict
-
 from rest_cdmi.capabilities import (
     StorageSystemMetadataCapabilities,
     ContainerCapabilities,
@@ -23,16 +20,15 @@ from rest_cdmi.capabilities import (
 )
 
 
-class CDMIDataAccessObject(object):
+class CDMIDataAccessObject():
     """CDMI Data Access Object to interact with a data store.
 
     Enhances the Abstract Base Data Access Object, providing CDMI capabilities
     and CDMI compliant identifier manipulation.
     """
 
-    def __init__(self, config):
-        # super(CDMIDataAccessObject, self).__init__(config)
-        self.metdataCapabilities = StorageSystemMetadataCapabilities(
+    def __init__(self):
+        self.metdata_capabilities = StorageSystemMetadataCapabilities(
             cdmi_acl=False,
             cdmi_size=False,
             cdmi_ctime=False,
@@ -41,7 +37,7 @@ class CDMIDataAccessObject(object):
             cdmi_acount=False,
             cdmi_mcount=False,
         )
-        self.containerCapabilities = ContainerCapabilities(
+        self.container_capabilities = ContainerCapabilities(
             cdmi_create_container=False,
             cdmi_delete_container=False,
             cdmi_create_queue=False,
@@ -57,7 +53,7 @@ class CDMIDataAccessObject(object):
             cdmi_copy_dataobject=False,
             cdmi_move_dataobject=False,
         )
-        self.dataObjectCapabilities = DataObjectCapabilities(
+        self.data_object_capabilities = DataObjectCapabilities(
             cdmi_read_metadata=False,
             cdmi_read_value=False,
             cdmi_read_value_range=False,
@@ -65,41 +61,3 @@ class CDMIDataAccessObject(object):
             cdmi_modify_value=False,
             cdmi_delete_dataobject=False,
         )
-
-    def _CDMIify_metadata(self, metadata):
-        """Impose CDMI compliance on metadata dictionary.
-
-        :type metadata: dict
-        :returns: CDMI compliant metadata dictionary
-        :rtype: dict
-        """
-        cdmi_md = OrderedDict()
-        for k, val in metadata.iteritems():
-            # This may be improved
-            if not k.startswith(METADATA_PREFIX):
-                # Replace keys containing internally used "alloy_" prefix  with
-                # CDMI mandated reversed URL style prefixes
-                cdmi_k = re.sub("^alloy", METADATA_PREFIX, k, 1)
-            else:
-                cdmi_k = k
-            cdmi_md[cdmi_k] = val
-
-        return cdmi_md
-
-    def _unCDMIify_metadata(self, metadata):
-        """Strip CDMI cruft from metadata dictionary for internal storage.
-
-        :type metadata: dict
-        :returns: metadata dictionary for internal storage
-        :rtype: dict
-        """
-        store_md = {}
-        for k, val in metadata.iteritems():
-            if k.startswith("cdmi_"):
-                # cdmi_ values are prohibited by CDMI spec for user-defined
-                # metadata
-                continue
-            else:
-                store_md[k] = val
-
-        return store_md

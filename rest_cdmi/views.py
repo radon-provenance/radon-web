@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@ limitations under the License.
 
 from collections import OrderedDict
 import base64
-import mimetypes
-import hashlib
-import os
 import json
 import logging
+import time
 import ldap
 
 from django.shortcuts import redirect
@@ -40,33 +38,22 @@ from rest_framework.status import (
     HTTP_406_NOT_ACCEPTABLE,
     HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE,
     HTTP_409_CONFLICT,
-    HTTP_412_PRECONDITION_FAILED,
 )
 from rest_framework.renderers import BaseRenderer, JSONRenderer
 from rest_framework.decorators import api_view, authentication_classes
-from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.reverse import reverse_lazy
 from rest_framework.authentication import BasicAuthentication, exceptions
 
-from rest_framework import HTTP_HEADER_ENCODING
 from rest_framework.permissions import IsAuthenticated
 
 from rest_cdmi.capabilities import SYSTEM_CAPABILITIES
 from rest_cdmi.storage import CDMIDataAccessObject
 from rest_cdmi.models import CDMIContainer, CDMIResource
-from archive.uploader import CassandraUploadedFile
 from radon.models import Collection, DataObject, Resource, User
 from radon.util import split
-from radon.util_archive import path_exists, is_resource, is_collection
-from radon.models.errors import (
-    CollectionConflictError,
-    ResourceConflictError,
-    NoSuchCollectionError,
-    NoSuchResourceError,
-    NoWriteAccessError,
-)
+from radon.util_archive import path_exists
+from radon.models.errors import ResourceConflictError
 
 
 CHUNK_SIZE = 1048576
@@ -155,20 +142,12 @@ def check_cdmi_version(request):
     for version in CDMI_SUPPORTED_VERSION:
         if version in versions_list:
             return version
-    else:
-        return ""
+    return ""
 
 
 def chunkstring(string, length):
+    """"Return a chunk of a string"""
     return (string[0 + i : length + i] for i in range(0, len(string), length))
-
-
-# TODO: Move this to a helper
-def get_extension(name):
-    _, ext = os.path.splitext(name)
-    if ext:
-        return ext[1:].upper()
-    return "UNKNOWN"
 
 
 def parse_range_header(specifier, len_content):
@@ -229,8 +208,8 @@ def capabilities(request, path):
         body["childrenrange"] = "0-3"
         body["children"] = ["domain/", "container/", "data_object/", "queue/"]
     elif not path.endswith("/"):
-        d = CDMIDataAccessObject({}).data_objectCapabilities._asdict()
-        body["capabilities"] = d
+        data_dict = CDMIDataAccessObject().data_object_capabilities._asdict()
+        body["capabilities"] = data_dict
         body["objectType"] = "application/cdmi-capability"
         body["objectID"] = "00007E7F00104BE66AB53A9572F9F51F"
         body["objectName"] = "data_object/"
@@ -239,8 +218,8 @@ def capabilities(request, path):
         body["childrenrange"] = "0"
         body["children"] = []
     else:
-        d = CDMIDataAccessObject({}).containerCapabilities._asdict()
-        body["capabilities"] = d
+        data_dict = CDMIDataAccessObject().container_capabilities._asdict()
+        body["capabilities"] = data_dict
         body["objectType"] = "application/cdmi-capability"
         body["objectID"] = "00007E7F00104BE66AB53A9572F9F51A"
         body["objectName"] = "container/"
@@ -272,31 +251,38 @@ class CDMIObjectRenderer(JSONRenderer):
 
 
 class OctetStreamRenderer(BaseRenderer):
+    """
+    Renderer which serializes CDMI data object to binary
+    """
 
     media_type = "application/octet-stream"
     format = "bin"
 
-    def render(self, data, media_type=None, renderer_context=None):
+    def render(self, data, accepted_media_type=None, renderer_context=None):
         # return data.encode(self.charset)
         return data
 
 
 class CassandraAuthentication(BasicAuthentication):
+    """HTTP Basic authentication against username/password, stored in
+    Cassandra"""
+
     www_authenticate_realm = "Radon"
 
-    def authenticate_credentials(self, userid, password, request):
+    def authenticate_credentials(self, userid, password, request=None):
         """
         Authenticate the username and password against username and password.
         """
         user = User.find(userid)
         if user is None or not user.is_active():
             raise exceptions.AuthenticationFailed(_("User inactive or deleted."))
-        if not user.authenticate(password) and not ldapAuthenticate(userid, password):
+        if not user.authenticate(password) and not ldap_authenticate(userid, password):
             raise exceptions.AuthenticationFailed(_("Invalid username/password."))
         return (user, None)
 
 
-def ldapAuthenticate(username, password):
+def ldap_authenticate(username, password):
+    """Try to authenticate to a LDAP server (stored in settings)"""
     if settings.AUTH_LDAP_SERVER_URI is None:
         return False
 
@@ -319,14 +305,15 @@ def ldapAuthenticate(username, password):
 @authentication_classes(
     [CassandraAuthentication,]
 )
-def crud_id(request, id):
+def crud_id(request, obj_id):
+    """Call the correct method from a call with the uuid of a resource/collection"""
     # The URL should end with a '/'
-    id = id.replace("/", "")
-    collection = Collection.find_by_uuid(id)
+    obj_id = obj_id.replace("/", "")
+    collection = Collection.find_by_uuid(obj_id)
     if collection:
         return redirect("rest_cdmi:api_cdmi", path=collection.path())
     else:
-        resource = Resource.find_by_uuid(id)
+        resource = Resource.find_by_uuid(obj_id)
         if resource:
             return redirect("rest_cdmi:api_cdmi", path=resource.path())
         else:
@@ -334,6 +321,8 @@ def crud_id(request, id):
 
 
 class CDMIView(APIView):
+    """Class that manages cdmi requests"""
+
     authentication_classes = (CassandraAuthentication,)
     renderer_classes = (
         CDMIContainerRenderer,
@@ -349,6 +338,9 @@ class CDMIView(APIView):
         self.api_root = cfg["endpoint"]
         # self.api_root = reverse_lazy('api_cdmi', args=path, request=request)
         self.logger = logging.getLogger("radon")
+        self.http_mode = True
+        self.cdmi_version = "HTTP"
+        self.user = None
 
     def check_cdmi_version(self):
         """Check the HTTP request header to see what version the client is
@@ -359,7 +351,8 @@ class CDMIView(APIView):
         return check_cdmi_version(self.request)
 
     @csrf_exempt
-    def get(self, request, path=u"/", format=None):
+    def get(self, request, path="/"):
+        """Get request on a container or a resource path"""
         self.user = request.user
         # Check HTTP Headers for CDMI version or HTTP mode
         self.cdmi_version = self.check_cdmi_version()
@@ -382,7 +375,8 @@ class CDMIView(APIView):
             return self.read_data_object(path)
 
     @csrf_exempt
-    def put(self, request, path=u"/", format=None):
+    def put(self, request, path="/"):
+        """Put request on a container or a resource path"""
         self.user = request.user
         # Check HTTP Headers for CDMI version or HTTP mode
         self.cdmi_version = self.check_cdmi_version()
@@ -405,7 +399,8 @@ class CDMIView(APIView):
             return self.put_data_object(path)
 
     @csrf_exempt
-    def delete(self, request, path=u"/", format=None):
+    def delete(self, request, path=u"/"):
+        """Delete request on a container or a resource path"""
         self.user = request.user
         # Check HTTP Headers for CDMI version or HTTP mode
         self.cdmi_version = self.check_cdmi_version()
@@ -429,6 +424,7 @@ class CDMIView(APIView):
             return self.delete_data_object(path)
 
     def delete_data_object(self, path):
+        """Delete a resource"""
         resource = Resource.find(path)
         if not resource:
             collection = Collection.find(path)
@@ -453,6 +449,7 @@ class CDMIView(APIView):
         return Response(status=HTTP_204_NO_CONTENT)
 
     def delete_container(self, path):
+        """Delete a container"""
         collection = Collection.find(path)
         if not collection:
             self.logger.info(u"Fail to delete collection at '{}'".format(path))
@@ -467,6 +464,7 @@ class CDMIView(APIView):
         return Response(status=HTTP_204_NO_CONTENT)
 
     def read_container(self, path):
+        """Get information on a container"""
         collection = Collection.find(path)
         if not collection:
             self.logger.info(u"Fail to read a collection at '{}'".format(path))
@@ -489,9 +487,10 @@ class CDMIView(APIView):
             return self.read_container_cdmi(cdmi_container)
 
     def read_container_cdmi(self, cdmi_container):
+        """Get container information, cdmi mode"""
         path = cdmi_container.get_path()
         http_accepts = self.request.META.get("HTTP_ACCEPT", "").split(",")
-        http_accepts = set([el.split(";")[0] for el in http_accepts])
+        http_accepts = {el.split(";")[0] for el in http_accepts}
         if not http_accepts.intersection(set(["application/cdmi-container", "*/*"])):
             self.logger.error(
                 u"Accept header problem for container '{}' ('{}')".format(
@@ -529,7 +528,7 @@ class CDMIView(APIView):
                     body[field] = get_field(value)
                 else:
                     body[field] = get_field()
-            except:
+            except AttributeError:
                 self.logger.error(
                     u"Parameter problem for container '{}' ('{}={}')".format(
                         path, field, value
@@ -575,9 +574,10 @@ class CDMIView(APIView):
             return self.read_data_object_cdmi(cdmi_resource)
 
     def read_data_object_cdmi(self, cdmi_resource):
+        """Read a resource, cdmi mode"""
         path = cdmi_resource.get_path()
         http_accepts = self.request.META.get("HTTP_ACCEPT", "").split(",")
-        http_accepts = set([el.split(";")[0] for el in http_accepts])
+        http_accepts = {el.split(";")[0] for el in http_accepts}
         if not http_accepts.intersection(set(["application/cdmi-object", "*/*"])):
             self.logger.error(
                 u"Accept header problem for resource '{}' ('{}')".format(
@@ -645,13 +645,14 @@ class CDMIView(APIView):
         return response
 
     def read_data_object_http(self, cdmi_resource):
+        """Read a resource, http mode"""
         path = cdmi_resource.get_path()
 
         if "HTTP_RANGE" in self.request.META:
             # Use range header
             specifier = self.request.META.get("HTTP_RANGE", "")
-            range = parse_range_header(specifier, cdmi_resource.get_length())
-            if not range:
+            http_range = parse_range_header(specifier, cdmi_resource.get_length())
+            if not http_range:
                 self.logger.error(
                     u"Range header parsing failed '{}' for resource '{}'".format(
                         specifier, path
@@ -661,40 +662,41 @@ class CDMIView(APIView):
             else:
                 self.logger.info(
                     u"{} reads resource at '{}' using HTTP, with range '{}'".format(
-                        self.user.name, path, range
+                        self.user.name, path, http_range
                     )
                 )
                 # Totally inefficient but that's probably not something
                 # we're gonna use a lot
                 value = cdmi_resource.get_value()
                 data = []
-                for (start, stop) in range:
+                for (start, stop) in http_range:
                     data.append(value[start:stop])
                 data = "".join([d for d in data])
-                st = HTTP_206_PARTIAL_CONTENT
+                status = HTTP_206_PARTIAL_CONTENT
             return StreamingHttpResponse(
                 streaming_content=data,
                 content_type=cdmi_resource.get_mimetype(),
-                status=st,
+                status=status,
             )
         else:
             self.logger.info(
                 u"{} reads resource at '{}' using HTTP".format(self.user.name, path)
             )
-            content_type = cdmi_resource.get_mimetype()
-            st = HTTP_200_OK
+            status = HTTP_200_OK
             return StreamingHttpResponse(
                 streaming_content=cdmi_resource.chunk_content(),
                 content_type=cdmi_resource.get_mimetype(),
-                status=st,
+                status=status,
             )
 
     def read_data_object_reference(self, cdmi_resource):
+        """Read a resource, when it's a reference"""
         return Response(
             status=HTTP_302_FOUND, headers={"Location": cdmi_resource.get_url()}
         )
 
     def put_container(self, path):
+        """Create a new container"""
         # Check if the container already exists
         collection = Collection.find(path)
         if collection:
@@ -755,7 +757,7 @@ class CDMIView(APIView):
             #     A response message body may be provided as per RFC 2616.
             #
             # Send the CDMI response but with Content-Type = application/json
-            content_type = "application/json"
+            #content_type = "application/json"
             # Mandatory completionStatus
             # Does not accept CDMI - cannot return "202 Accepted"
             # Try to wait until complete
@@ -781,15 +783,16 @@ class CDMIView(APIView):
         )
 
     def put_container_metadata(self, collection):
+        """Modify container metadata"""
         # Store any metadata and return appropriate error
-        tmp = self.request.content_type.split(";")
-        content_type = tmp[0]
+        #tmp = self.request.content_type.split(";")
+        #content_type = tmp[0]
         try:
             body = self.request.body
-            requestBody = json.loads(body)
-        except:
-            requestBody = {}
-        metadata = requestBody.get("metadata", {})
+            request_body = json.loads(body)
+        except (TypeError, json.JSONDecodeError):
+            request_body = {}
+        metadata = request_body.get("metadata", {})
         if metadata:
             if "cdmi_acl" in metadata:
                 # We treat acl metadata in a specific way
@@ -800,6 +803,7 @@ class CDMIView(APIView):
         return HTTP_204_NO_CONTENT
 
     def create_data_object(self, raw_data, metadata=None, create_ts=None, acl=None):
+        """Put a new resource"""
         data_object = DataObject.create(
             raw_data,
             settings.COMPRESS_UPLOADS,
@@ -810,13 +814,17 @@ class CDMIView(APIView):
         return data_object.uuid
 
     def create_empty_data_object(self):
+        """Create an entry for a data object in the system"""
         data_object = DataObject.create(None)
         return data_object.uuid
 
     def append_data_object(self, uuid, seq_num, raw_data):
-        DataObject.append_chunk(uuid, raw_data, seq_num, settings.COMPRESS_UPLOADS)
+        """Add a chunk of data in an existing data object"""
+        DataObject.append_chunk(uuid, raw_data, seq_num,
+                                settings.COMPRESS_UPLOADS)
 
     def create_resource(self, parent, name, content, mimetype):
+        """Create a new resource"""
         uuid = None
         seq_num = 0
         for chk in chunkstring(content, CHUNK_SIZE):
@@ -833,13 +841,16 @@ class CDMIView(APIView):
         )
         return resource
 
-    def create_reference(self, parent, name, url, mimetype="application/cdmi-object"):
+    def create_reference(self, parent, name, url,
+                         mimetype="application/cdmi-object"):
+        """Create a new reference"""
         resource = Resource.create(
             name=name, container=parent, url=url, mimetype=mimetype
         )
         return resource
 
     def put_data_object_http(self, parent, name, resource):
+        """Upload data object in http mode"""
         tmp = self.request.content_type.split("; ")
         content_type = tmp[0]
         if not content_type:
@@ -879,6 +890,7 @@ class CDMIView(APIView):
             return Response(status=HTTP_201_CREATED)
 
     def put_data_object_cdmi(self, parent, name, resource):
+        """Upload data object in cdmi mode"""
         tmp = self.request.content_type.split("; ")
         content_type = tmp[0]
         metadata = {}
@@ -897,7 +909,7 @@ class CDMIView(APIView):
         try:
             body = self.request.body
             request_body = json.loads(body)
-        except Exception as e:
+        except (json.JSONDecodeError, TypeError):
             return Response(status=HTTP_400_BAD_REQUEST)
 
         value_type = [
@@ -985,7 +997,7 @@ class CDMIView(APIView):
                 if field in ["value", "valuerange"] and is_reference:
                     continue
                 body[field] = get_field()
-            except Exception as e:
+            except AttributeError:
                 self.logger.error(
                     u"Parameter problem for resource '{}' ('{}={}')".format(
                         cdmi_resource.get_path(), field, value
@@ -998,6 +1010,7 @@ class CDMIView(APIView):
         )
 
     def put_data_object(self, path):
+        """Put a data object to a specific collection"""
         # Check if a collection with the name exists
         collection = Collection.find(path)
         if collection:

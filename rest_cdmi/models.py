@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,31 +14,30 @@ limitations under the License.
 """
 
 import mimetypes
-from collections import OrderedDict
 
 from radon.models.collection import Collection
 
 
-class CDMIContainer(object):
+class CDMIContainer():
     """Wrapper to return CDMI fields from a Collection"""
 
     def __init__(self, radon_container, api_root):
         self.collection = radon_container
         self.api_root = api_root
 
-    def get_capabilitiesURI(self):
+    def get_capabilities_uri(self):
         """Mandatory URI to the capabilities for the object"""
         return u"{0}/cdmi_capabilities/container{1}" "".format(
             self.api_root, self.collection.path
         )
 
-    def get_children(self, range=None):
+    def get_children(self, child_range=None):
         """Mandatory - Names of the children objects in the container object."""
         child_c, child_r = self.collection.get_child()
         child_c = [u"{}/".format(c) for c in child_c]
         res = child_c + child_r
-        if range:
-            start, stop = (int(el) for el in range.split("-", 1))
+        if child_range:
+            start, stop = (int(el) for el in child_range.split("-", 1))
             # map CDMI range value to python index
             stop += 1
         else:
@@ -55,7 +54,7 @@ class CDMIContainer(object):
         else:
             return "0-0"
 
-    def get_completionStatus(self):
+    def get_completion_status(self):
         """Mandatory - A string indicating if the object is still in the
         process of being created or updated by another operation,"""
         val = self.collection.get_metadata_key("cdmi_completionStatus")
@@ -63,29 +62,30 @@ class CDMIContainer(object):
             val = "Complete"
         return val
 
-    def get_domainURI(self):
+    def get_domain_uri(self):
         """Mandatory URI of the owning domain"""
         return "{0}/cdmi_domains/radon/".format(self.api_root)
 
     def get_metadata(self):
+        """Return metadata"""
         md = self.collection.get_cdmi_metadata()
         md.update(self.collection.get_acl_metadata())
         return md
 
-    def get_objectID(self):
+    def get_object_id(self):
         """Mandatory object ID of the object"""
         return self.collection.uuid
 
-    def get_objectName(self):
+    def get_object_name(self):
         """Conditional name of the object
         We don't support objects only accessible by ID so this is mandatory"""
         return self.collection.name
 
-    def get_objectType(self):
+    def get_object_type(self):
         """Mandatory Object type"""
         return "application/cdmi-container"
 
-    def get_parentID(self):
+    def get_parent_id(self):
         """Conditional Object ID of the parent container object
         We don't support objects only accessible by ID so this is mandatory"""
         parent_path = self.collection.container
@@ -94,20 +94,21 @@ class CDMIContainer(object):
         parent = Collection.find(parent_path)
         return parent.uuid
 
-    def get_parentURI(self):
+    def get_parent_uri(self):
         """Conditional URI for the parent object
         We don't support objects only accessible by ID so this is mandatory"""
         # A container in CDMI has a '/' at the end but we don't (except for the
         # root)
         parent_path = self.collection.container
-        if parent_path != "/" and parent_path != "null":
+        if parent_path not in ('/', 'null'):
             parent_path = u"{}/".format(parent_path)
         return u"{}".format(parent_path)
 
     def get_path(self):
+        """Return collection path"""
         return self.collection.path
 
-    def get_percentComplete(self):
+    def get_percent_complete(self):
         """Optional - Indicate the percentage of completion as a numeric
         integer value from 0 through 100. 100 if the completionStatus is
         'Complete'"""
@@ -118,7 +119,7 @@ class CDMIContainer(object):
         return val
 
 
-class CDMIResource(object):
+class CDMIResource():
     """Wrapper to return CDMI fields from a Resource"""
 
     def __init__(self, radon_resource, api_root):
@@ -126,15 +127,16 @@ class CDMIResource(object):
         self.api_root = api_root
 
     def chunk_content(self):
+        """Return a chunk of the resource"""
         return self.resource.chunk_content()
 
-    def get_capabilitiesURI(self):
+    def get_capabilities_uri(self):
         """Mandatory URI to the capabilities for the object"""
         return u"{0}/cdmi_capabilities/dataobject{1}" "".format(
             self.api_root, self.resource.path
         )
 
-    def get_completionStatus(self):
+    def get_completion_status(self):
         """Mandatory - A string indicating if the object is still in the
         process of being created or updated by another operation,"""
         val = self.resource.get_metadata_key("cdmi_completionStatus")
@@ -142,19 +144,22 @@ class CDMIResource(object):
             val = "Complete"
         return val
 
-    def get_domainURI(self):
+    def get_domain_uri(self):
         """Mandatory URI of the owning domain"""
         return "{0}/cdmi_domains/radon/".format(self.api_root)
 
     def get_length(self):
+        """Return size of the resource"""
         return self.resource.size
 
     def get_metadata(self):
+        """Return metadata of the resource"""
         md = self.resource.get_cdmi_metadata()
         md.update(self.resource.get_acl_metadata())
         return md
 
     def get_mimetype(self):
+        """Return mimetype of the resource"""
         if self.resource.get_mimetype():
             return self.resource.get_mimetype()
         # Give best guess at mimetype
@@ -165,26 +170,26 @@ class CDMIResource(object):
             # Interpret as binary data
             return "application/octet-stream"
 
-    def get_objectID(self):
+    def get_object_id(self):
         """Mandatory object ID of the object"""
         return self.resource.uuid
 
-    def get_objectName(self):
+    def get_object_name(self):
         """Conditional name of the object
         We don't support objects only accessible by ID so this is mandatory"""
         return self.resource.get_name()
 
-    def get_objectType(self):
+    def get_object_type(self):
         """Mandatory Object type"""
         return "application/cdmi-object"
 
-    def get_parentID(self):
+    def get_parent_id(self):
         """Conditional Object ID of the parent container object
         We don't support objects only accessible by ID so this is mandatory"""
         parent = Collection.find(self.resource.container)
         return parent.uuid
 
-    def get_parentURI(self):
+    def get_parent_uri(self):
         """Conditional URI for the parent object
         We don't support objects only accessible by ID so this is mandatory"""
         # A container in CDMI has a '/' at the end but we don't (except for the
@@ -195,9 +200,10 @@ class CDMIResource(object):
         return u"{}".format(parent_path)
 
     def get_path(self):
+        """Return resource path"""
         return self.resource.path
 
-    def get_percentComplete(self):
+    def get_percent_complete(self):
         """Optional - Indicate the percentage of completion as a numeric
         integer value from 0 through 100. 100 if the completionStatus is
         'Complete'"""
@@ -208,21 +214,23 @@ class CDMIResource(object):
         return val
 
     def get_reference(self):
+        """Return url of the resource"""
         return self.resource.url
 
     def get_url(self):
+        """Return url of the resource"""
         return self.resource.url
 
-    def get_value(self, range=None):
-        driver = get_driver(self.resource.url)
+    def get_value(self, child_range=None):
+        """Return content of the resource"""
         # TODO: Improve that for large files. Check what CDMI recommends
         # for stream access
         data = []
-        for chk in driver.chunk_content():
+        for chk in self.chunk_content():
             data.append(chk)
         res = "".join([s for s in data])
-        if range:
-            start, stop = (int(el) for el in range.split("-", 1))
+        if child_range:
+            start, stop = (int(el) for el in child_range.split("-", 1))
             # map CDMI range value to python index
             stop += 1
         else:
