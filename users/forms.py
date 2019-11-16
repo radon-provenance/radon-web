@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ from django import forms
 
 
 class UserForm(forms.Form):
+    """Fields for the user form"""
 
     username = forms.CharField(label="Username", max_length=100, required=True)
     email = forms.CharField(label="Email", max_length=100, required=True)

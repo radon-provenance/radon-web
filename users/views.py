@@ -1,4 +1,4 @@
-"""Copyright 2019 - 
+"""Copyright 2019 -
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.contrib import messages
 from django.conf import settings
-
-from radon.models import Group, User
 import ldap
 
 from users.forms import UserForm
+from radon.models import Group, User
 
 
 @login_required
 def home(request):
+    """Homepage for the user view"""
     # TODO: Order by username
     user_objs = list(User.objects.all())
 
@@ -48,8 +48,7 @@ def home(request):
 
 
 def userlogin(request):
-    from django.contrib.auth import login
-
+    """Try to log a user in the system"""
     if request.method == "GET":
         return render(request, "users/login.html", {})
 
@@ -67,7 +66,7 @@ def userlogin(request):
         if not user:
             errors = invalid
         else:
-            if not user.authenticate(password) and not ldapAuthenticate(
+            if not user.authenticate(password) and not ldap_authenticate(
                 username, password
             ):
                 errors = invalid
@@ -83,7 +82,8 @@ def userlogin(request):
     return render(request, "users/login.html", ctx)
 
 
-def ldapAuthenticate(username, password):
+def ldap_authenticate(username, password):
+    """Try to authenticate against an existing ldap server"""
     if settings.AUTH_LDAP_SERVER_URI is None:
         return False
 
@@ -105,6 +105,7 @@ def ldapAuthenticate(username, password):
 
 @login_required
 def delete_user(request, name):
+    """Delete a user"""
     user = User.find(name)
     if not user:
         raise Http404
@@ -129,6 +130,7 @@ def delete_user(request, name):
 
 @login_required
 def edit_user(request, name):
+    """Modify a user"""
     # Requires edit on user
     user = User.find(name)
     if not user:
@@ -170,6 +172,7 @@ def edit_user(request, name):
 
 @login_required
 def new_user(request):
+    """Create a new user"""
     if request.method == "POST":
         form = UserForm(request.POST)
         if form.is_valid():
@@ -199,6 +202,7 @@ def new_user(request):
 
 
 def userlogout(request):
+    """Remove a user from the cache -> logout"""
     request.session.flush()
     request.user = None
     return render(request, "users/logout.html", {})
@@ -206,6 +210,7 @@ def userlogout(request):
 
 @login_required
 def user_view(request, name):
+    """Render the view page for users"""
     # argument is the login name, not the uuid in Cassandra
     user = User.find(name)
     if not user:
