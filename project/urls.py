@@ -13,7 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from django.conf import settings
 from django.conf.urls import include, url
+from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 
@@ -32,4 +34,4 @@ urlpatterns = [
     ),
     url(r"^api/cdmi/", include("rest_cdmi.urls", namespace="rest_cdmi")),
     url(r"^api/admin/", include("rest_admin.urls", namespace="rest_admin")),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
