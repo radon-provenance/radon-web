@@ -1,0 +1,10 @@
+{
+  "name": "Radon Test",
+  "authType": "Basic",
+  "details": {
+    "default": {
+      "username": "test",
+      "password": "test"
+    }
+  }
+}

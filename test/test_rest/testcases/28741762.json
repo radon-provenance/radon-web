@@ -1,0 +1,47 @@
+{
+  "details": {
+    "summary": "Read Collection (CDMI)",
+    "description": "",
+    "externalId": "",
+    "condition": "",
+    "loopSource": "",
+    "waitForseconds": null,
+    "runnable": true,
+    "authorizationId": "32553071"
+  },
+  "validation": {
+    "assertions": [
+      {
+        "source": "statusCode",
+        "property": null,
+        "operator": "equalToNumber",
+        "expectedValue": "200"
+      }
+    ],
+    "expectedBody": {
+      "content": {},
+      "type": "json"
+    },
+    "expectedSchema": {
+      "content": {},
+      "type": "json"
+    }
+  },
+  "request": {
+    "url": "http://127.0.0.1:8000/api/cdmi/testAPI/",
+    "method": "GET",
+    "headers": {
+      "X-CDMI-Specification-Version": "1.1",
+      "Accept": "application/cdmi-container"
+    },
+    "queryParams": [],
+    "body": {
+      "content": {},
+      "type": "json",
+      "formParams": []
+    }
+  },
+  "variables": [],
+  "iterationResultVariable": "",
+  "resultVariable": ""
+}

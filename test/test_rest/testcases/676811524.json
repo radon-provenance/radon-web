@@ -1,0 +1,47 @@
+{
+  "details": {
+    "summary": "Create Data Object (HTTP)",
+    "description": "",
+    "externalId": "",
+    "condition": "",
+    "loopSource": "",
+    "waitForseconds": null,
+    "runnable": true,
+    "authorizationId": "32553071"
+  },
+  "validation": {
+    "assertions": [
+      {
+        "source": "statusCode",
+        "property": null,
+        "operator": "equalToNumber",
+        "expectedValue": "201"
+      }
+    ],
+    "expectedBody": {
+      "content": {},
+      "type": "json"
+    },
+    "expectedSchema": {
+      "content": {},
+      "type": "json"
+    }
+  },
+  "request": {
+    "url": "http://127.0.0.1:8000/api/cdmi/testAPI/test.txt",
+    "method": "PUT",
+    "headers": {
+      "Content-Type": "text/plain;charset=utf-8",
+      "Content-Length": "37"
+    },
+    "queryParams": [],
+    "body": {
+      "content": "This is the Value of this Data Object",
+      "type": "text",
+      "formParams": []
+    }
+  },
+  "variables": [],
+  "iterationResultVariable": "",
+  "resultVariable": ""
+}
