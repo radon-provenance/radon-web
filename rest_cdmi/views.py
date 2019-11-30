@@ -89,9 +89,9 @@ FIELDS_DATA_OBJECT = OrderedDict(
         ("percentComplete", None),
         ("mimetype", None),
         ("metadata", None),
-        ("valuetransferencoding", None),
+        ("valueTransferEncoding", None),
         ("value", None),
-        ("valuerange", None),
+        ("valueRange", None),
     ]
 )
 
@@ -751,6 +751,7 @@ class CDMIView(APIView):
         res = self.put_container_metadata(collection)
         if res != HTTP_204_NO_CONTENT:
             return Response(status=res)
+        print(self.http_mode)
         if self.http_mode:
             # Specification states that:
             #
@@ -766,6 +767,7 @@ class CDMIView(APIView):
                 time.sleep(5)
             response_status = "201 Created"
             body["completionStatus"] = "Complete"
+            return Response(status=HTTP_201_CREATED)
         else:
             # CDMI mode
             for field, value in FIELDS_CONTAINER.items():
@@ -778,9 +780,9 @@ class CDMIView(APIView):
             else:
                 response_status = HTTP_201_CREATED
                 body["completionStatus"] = "Complete"
-        return JsonResponse(
-            body, content_type=body["objectType"], status=response_status
-        )
+            return JsonResponse(
+                body, content_type=body["objectType"], status=response_status
+            )
 
     def put_container_metadata(self, collection):
         """Modify container metadata"""

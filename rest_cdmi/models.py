@@ -25,7 +25,7 @@ class CDMIContainer():
         self.collection = radon_container
         self.api_root = api_root
 
-    def get_capabilities_uri(self):
+    def get_capabilitiesURI(self):
         """Mandatory URI to the capabilities for the object"""
         return u"{0}/cdmi_capabilities/container{1}" "".format(
             self.api_root, self.collection.path
@@ -54,7 +54,7 @@ class CDMIContainer():
         else:
             return "0-0"
 
-    def get_completion_status(self):
+    def get_completionStatus(self):
         """Mandatory - A string indicating if the object is still in the
         process of being created or updated by another operation,"""
         val = self.collection.get_metadata_key("cdmi_completionStatus")
@@ -62,7 +62,7 @@ class CDMIContainer():
             val = "Complete"
         return val
 
-    def get_domain_uri(self):
+    def get_domainURI(self):
         """Mandatory URI of the owning domain"""
         return "{0}/cdmi_domains/radon/".format(self.api_root)
 
@@ -72,20 +72,20 @@ class CDMIContainer():
         md.update(self.collection.get_acl_metadata())
         return md
 
-    def get_object_id(self):
+    def get_objectID(self):
         """Mandatory object ID of the object"""
         return self.collection.uuid
 
-    def get_object_name(self):
+    def get_objectName(self):
         """Conditional name of the object
         We don't support objects only accessible by ID so this is mandatory"""
         return self.collection.name
 
-    def get_object_type(self):
+    def get_objectType(self):
         """Mandatory Object type"""
         return "application/cdmi-container"
 
-    def get_parent_id(self):
+    def get_parentID(self):
         """Conditional Object ID of the parent container object
         We don't support objects only accessible by ID so this is mandatory"""
         parent_path = self.collection.container
@@ -94,7 +94,7 @@ class CDMIContainer():
         parent = Collection.find(parent_path)
         return parent.uuid
 
-    def get_parent_uri(self):
+    def get_parentURI(self):
         """Conditional URI for the parent object
         We don't support objects only accessible by ID so this is mandatory"""
         # A container in CDMI has a '/' at the end but we don't (except for the
@@ -108,7 +108,7 @@ class CDMIContainer():
         """Return collection path"""
         return self.collection.path
 
-    def get_percent_complete(self):
+    def get_percentComplete(self):
         """Optional - Indicate the percentage of completion as a numeric
         integer value from 0 through 100. 100 if the completionStatus is
         'Complete'"""
@@ -130,13 +130,13 @@ class CDMIResource():
         """Return a chunk of the resource"""
         return self.resource.chunk_content()
 
-    def get_capabilities_uri(self):
+    def get_capabilitiesURI(self):
         """Mandatory URI to the capabilities for the object"""
         return u"{0}/cdmi_capabilities/dataobject{1}" "".format(
             self.api_root, self.resource.path
         )
 
-    def get_completion_status(self):
+    def get_completionStatus(self):
         """Mandatory - A string indicating if the object is still in the
         process of being created or updated by another operation,"""
         val = self.resource.get_metadata_key("cdmi_completionStatus")
@@ -144,13 +144,13 @@ class CDMIResource():
             val = "Complete"
         return val
 
-    def get_domain_uri(self):
+    def get_domainURI(self):
         """Mandatory URI of the owning domain"""
         return "{0}/cdmi_domains/radon/".format(self.api_root)
 
     def get_length(self):
         """Return size of the resource"""
-        return self.resource.size
+        return self.resource.get_size()
 
     def get_metadata(self):
         """Return metadata of the resource"""
@@ -170,26 +170,26 @@ class CDMIResource():
             # Interpret as binary data
             return "application/octet-stream"
 
-    def get_object_id(self):
+    def get_objectID(self):
         """Mandatory object ID of the object"""
         return self.resource.uuid
 
-    def get_object_name(self):
+    def get_objectName(self):
         """Conditional name of the object
         We don't support objects only accessible by ID so this is mandatory"""
         return self.resource.get_name()
 
-    def get_object_type(self):
+    def get_objectType(self):
         """Mandatory Object type"""
         return "application/cdmi-object"
 
-    def get_parent_id(self):
+    def get_parentID(self):
         """Conditional Object ID of the parent container object
         We don't support objects only accessible by ID so this is mandatory"""
         parent = Collection.find(self.resource.container)
         return parent.uuid
 
-    def get_parent_uri(self):
+    def get_parentURI(self):
         """Conditional URI for the parent object
         We don't support objects only accessible by ID so this is mandatory"""
         # A container in CDMI has a '/' at the end but we don't (except for the
@@ -203,7 +203,7 @@ class CDMIResource():
         """Return resource path"""
         return self.resource.path
 
-    def get_percent_complete(self):
+    def get_percentComplete(self):
         """Optional - Indicate the percentage of completion as a numeric
         integer value from 0 through 100. 100 if the completionStatus is
         'Complete'"""
@@ -228,7 +228,8 @@ class CDMIResource():
         data = []
         for chk in self.chunk_content():
             data.append(chk)
-        res = "".join([s for s in data])
+        print(data)
+        res = b"".join([s for s in data])
         if child_range:
             start, stop = (int(el) for el in child_range.split("-", 1))
             # map CDMI range value to python index
@@ -236,14 +237,14 @@ class CDMIResource():
         else:
             start = 0
             stop = len(res)
-        return res[start:stop]
+        return str(res[start:stop])
 
-    def get_valuerange(self):
+    def get_valueRange(self):
         """Mandatory - The range of bytes of the data object to be returned in
         the value field"""
-        return "0-{}".format(self.resource.size - 1)
+        return "0-{}".format(self.resource.get_size() - 1)
 
-    def get_valuetransferencoding(self):
+    def get_valueTransferEncoding(self):
         """Mandatory - The value transfer encoding used for the data object
         value"""
         return "utf-8"
