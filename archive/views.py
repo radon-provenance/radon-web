@@ -35,7 +35,6 @@ from archive.forms import (
 
 from radon.models import Collection, Group, Resource, SearchIndex
 from radon.models.errors import CollectionConflictError, ResourceConflictError
-from radon.metadata import get_resource_keys, get_collection_keys
 from radon.util import merge
 
 
@@ -101,16 +100,9 @@ def new_resource(request, parent):
     if not parent_collection.user_can(request.user, "write"):
         raise PermissionDenied
 
-    keys = get_resource_keys()
-    mdata = collections.OrderedDict()
-    for k in keys:
-        mdata[k] = ""
-    if not mdata:
-        mdata[""] = ""
-
     read_access, write_access = parent_collection.get_acl_list()
     initial = {
-        "metadata": json.dumps(mdata),
+        "metadata": {},
         "read_access": read_access,
         "write_access": write_access,
     }
@@ -350,16 +342,9 @@ def new_collection(request, parent):
     if not parent_collection.user_can(request.user, "write"):
         raise PermissionDenied
 
-    keys = get_collection_keys()
-    mdata = collections.OrderedDict()
-    for k in keys:
-        mdata[k] = ""
-    if not mdata:
-        mdata[""] = ""
-
     read_access, write_access = parent_collection.get_acl_list()
     initial = {
-        "metadata": json.dumps(mdata),
+        "metadata": {},
         "read_access": read_access,
         "write_access": write_access,
     }

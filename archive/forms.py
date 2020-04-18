@@ -17,7 +17,6 @@ limitations under the License.
 import json
 from django import forms
 
-from radon.metadata import get_collection_validator, get_resource_validator
 from radon.models import Group
 
 from archive.widgets import JsonPairInputs
@@ -53,18 +52,6 @@ class CollectionForm(forms.Form):
         required=False, widget=forms.CheckboxSelectMultiple(), choices=groups,
     )
 
-    def clean_metadata(self):
-        """"Validate metadata"""
-        data = self.cleaned_data["metadata"]
-        dct = {}
-        for data_list in json.loads(data):
-            dct[data_list[0]] = data_list[1]
-
-        ok, errs = get_collection_validator().validate(dct)
-        if not ok:
-            raise forms.ValidationError([forms.ValidationError(e) for e in errs])
-        return data
-
 
 class CollectionNewForm(CollectionForm):
     """A form to create a collection"""
@@ -92,18 +79,6 @@ class ResourceForm(forms.Form):
     delete_access = forms.MultipleChoiceField(
         required=False, widget=forms.CheckboxSelectMultiple(), choices=groups,
     )
-
-    def clean_metadata(self):
-        """"Validate metadata"""
-        data = self.cleaned_data["metadata"]
-        dct = {}
-        for l in json.loads(data):
-            dct[l[0]] = l[1]
-
-        ok, errs = get_resource_validator().validate(dct)
-        if not ok:
-            raise forms.ValidationError([forms.ValidationError(e) for e in errs])
-        return data
 
 
 class ResourceNewForm(ResourceForm):
