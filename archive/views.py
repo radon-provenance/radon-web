@@ -184,7 +184,6 @@ def edit_resource(request, path):
                         metadata[k] = [metadata[k], v]
                 else:
                     metadata[k] = v
-
             try:
                 data = form.cleaned_data
                 # resource.update(metadata=metadata, username=request.user.name)
@@ -196,7 +195,7 @@ def edit_resource(request, path):
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    "That name is in use withinin the current collection",
+                    "That name is in use within the current collection",
                 )
     else:
         md = resource.get_cdmi_metadata()
