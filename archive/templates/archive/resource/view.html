@@ -40,12 +40,12 @@
 
 
 
-<div class="col-md-6">
+<!--div class="col-md-6">
     <h4>Preview</h4>
     <hr/>
     <iframe src="{% url 'archive:preview' path=resource.path%}" style="width:420px; height: 560px; border: none;" >
     </iframe>
-</div>
+</div-->
 
 <div class="col-md-6">
     <h4>Metadata</h4>
@@ -108,14 +108,14 @@
         {% for row in resource.metadata %}
         <tr>
           <th>
-            {% if row.0|length > 10 %}
+            {% if row.0|length > 4000 %}
               <span data-toggle="tooltip" title="{{ row.0 }}">...</span>
             {% else %}
               {{ row.0 }}
             {% endif %}
           </th>
           <td>
-            {% if row.1|length > 10 %}
+            {% if row.1|length > 4000 %}
               <span data-toggle="tooltip" title="{{ row.1 }}">...</span>
             {% else %}
               {{ row.1 }}

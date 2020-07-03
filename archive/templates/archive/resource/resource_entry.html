@@ -1,4 +1,3 @@
-
 <div class="resource-entry">
 
   <div class="row">
@@ -28,12 +27,12 @@
       </a>
       {% endif %}
   </div>
-
+  
   {% if resource.metadata %}
       {% if resource.can_read %}
         <div class="row">
         {% for m in resource.metadata %}
-          {% if m.0|length > 10 or m.1|length > 10 %}
+          {% if m.0|length > 20 or m.1|length > 20 %}
             <span class="label label-{% if not resource.can_read %}default{% else %}success{% endif %}" data-toggle="tooltip" title="{{ m.0 }} = {{ m.1 }}">
                  ...
             </span>&nbsp;&nbsp;

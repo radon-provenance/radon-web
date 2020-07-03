@@ -23,6 +23,7 @@ from archive.views import (
     edit_resource,
     home,
     new_collection,
+    new_reference,
     new_resource,
     preview,
     search,
@@ -45,6 +46,7 @@ urlpatterns = [
         r"^delete/collection(?P<path>.*)$", delete_collection, name="delete_collection"
     ),
     url(r"^new/resource(?P<parent>.*)$", new_resource, name="new_resource"),
+    url(r"^new/reference(?P<parent>.*)$", new_reference, name="new_reference"),
     url(r"^edit/resource(?P<path>.*)$", edit_resource, name="edit_resource"),
     url(r"^delete/resource(?P<path>.*)$", delete_resource, name="delete_resource"),
     url(r"^view(?P<path>.*)$", view_collection, name="view"),
