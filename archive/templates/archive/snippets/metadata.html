@@ -1,6 +1,6 @@
 
   {% for m in metadata %}
-    {% if m.0|length > 10 or m.1|length > 10 %}
+    {% if m.0|length > 4000 or m.1|length > 4000 %}
       <span class="label label-{{label}}" data-toggle="tooltip" title="{{ m.0 }} = {{ m.1 }}">
            ...
       </span>&nbsp;&nbsp;

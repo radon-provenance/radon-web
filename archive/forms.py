@@ -81,6 +81,13 @@ class ResourceForm(forms.Form):
     )
 
 
+class ReferenceNewForm(ResourceForm):
+    """A form to create a resource"""
+
+    name = forms.CharField(label="Item name", max_length=100, required=True)
+    url = forms.CharField(required=True)
+
+
 class ResourceNewForm(ResourceForm):
     """A form to create a resource"""
 
