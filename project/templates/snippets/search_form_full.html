@@ -1,0 +1,14 @@
+<form  style="margin-left: 4px;margin-right: 4px;" action="{% url 'archive:search' %}">
+    <div class="input-group {% if size == 'full' %}input-group-lg{% endif %}">
+        <input name="q" type="text" placeholder="Search ..." value="{{q}}"
+        class="form-control {% if size == 'full' %}input-lg{% endif %}"/>
+        <span class="input-group-btn">
+            <button type="submit" class="btn btn-success">Go!</button>
+        </span>
+    </div>
+    <br>
+    <div>
+        Search within Collection:  <input name="collection" type="text" placeholder="/" value="{{collection}}"
+        class="form-control {% if size == 'full' %}input-lg{% endif %}"/>
+    </div>
+</form>

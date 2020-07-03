@@ -1,0 +1,30 @@
+{% extends "archive/base.html" %}
+
+{% block title %}Archive Search{% endblock title %}
+
+{% block main_content %}
+
+<h2>Search {% if q %}results{% endif %}</h2>
+<hr/>
+{% include "snippets/search_form_full.html" with q=q size="full"%}
+<hr/>
+
+
+{% for c in results%}
+    {% if c.result_type == 'Collection' %}
+        {% include "archive/snippets/collection_entry.html" with collection=c highlights=highlights %}
+    {% endif %}
+
+    {% if c.result_type == 'Resource' %}
+        {% include "archive/resource/resource_entry.html" with resource=c highlights=highlights %}
+    {% endif %}
+
+{% empty %}
+    {% if q %}
+        <h2>No results were found for '{{q}}'</h2>
+    {% endif %}
+{% endfor %}
+
+{% endblock main_content %}
+
+
