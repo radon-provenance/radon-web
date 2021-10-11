@@ -1,12 +1,7 @@
 {
   "details": {
     "summary": "Create collection (HTTP)",
-    "description": "",
-    "externalId": "",
-    "condition": "",
-    "loopSource": "",
     "waitForseconds": null,
-    "runnable": true,
     "authorizationId": "32553071"
   },
   "validation": {
@@ -17,28 +12,10 @@
         "operator": "equalToNumber",
         "expectedValue": "201"
       }
-    ],
-    "expectedBody": {
-      "content": {},
-      "type": "json"
-    },
-    "expectedSchema": {
-      "content": {},
-      "type": "json"
-    }
+    ]
   },
   "request": {
     "url": "http://127.0.0.1:8000/api/cdmi/testAPI/",
-    "method": "PUT",
-    "headers": {},
-    "queryParams": [],
-    "body": {
-      "content": {},
-      "type": "json",
-      "formParams": []
-    }
-  },
-  "variables": [],
-  "iterationResultVariable": "",
-  "resultVariable": ""
+    "method": "PUT"
+  }
 }

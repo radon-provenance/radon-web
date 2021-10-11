@@ -1,6 +1,6 @@
 
 <ol class="breadcrumb">
-  <li><a href="{% url 'archive:view' path="" %}">Home</a></li>
+  <li><a href="{% url 'archive:view' %}">Home</a></li>
   {% for coll,full in collection_paths %}
     {% if forloop.last %}
         <li class="active">{{coll}}</li>
@@ -8,10 +8,26 @@
         <li><a href="{% url 'archive:view' path=full %}">{{coll}}</a></li>
     {% endif %}
   {% endfor %}
+  
+  
+    <span class="float-right">
+    {% if collection.can_edit %}
+    &nbsp;&nbsp;<a class="btn btn-xs btn-success" href="{% url 'archive:edit_collection' path=collection.path %}">Edit</a>
+    {% endif %}
+    {% if collection.can_delete %}
+    <a class="btn btn-xs btn-danger" href="{% url 'archive:delete_collection' path=collection.path %}">Delete</a>
+    {% endif %}
+    </span>
+  
 </ol>
 
 
-{% include "archive/snippets/metadata.html" with metadata=collection.metadata path=collection.path label='success' %}
+{% include "archive/snippets/metadata.html" with metadata=collection.sys_meta path=collection.path label='success' title='System Metadata' %}
+
+<hr/>
+
+{% include "archive/snippets/metadata.html" with metadata=collection.user_meta path=collection.path label='success' title='User Metadata' %}
+
 <hr/>
 
 {% if collection.can_write %}

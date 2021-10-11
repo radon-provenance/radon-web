@@ -3,8 +3,9 @@
   "authType": "Basic",
   "details": {
     "default": {
-      "username": "test",
-      "password": "test"
+      "username": "admin",
+      "password": "radon"
     }
-  }
+  },
+  "headerName": "authorization"
 }

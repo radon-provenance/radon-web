@@ -1,17 +1,16 @@
-"""Copyright 2019 -
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Copyright 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from collections import OrderedDict
 import base64
@@ -50,10 +49,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_cdmi.capabilities import SYSTEM_CAPABILITIES
 from rest_cdmi.storage import CDMIDataAccessObject
 from rest_cdmi.models import CDMIContainer, CDMIResource
-from radon.models import Collection, DataObject, Resource, User
-from radon.util import split
-from radon.util_archive import path_exists
-from radon.models.errors import ResourceConflictError
+from radon.model import (
+    Collection,
+    DataObject,
+    Resource,
+    User
+)
+from radon import cfg
+from radon.util import (
+    path_exists,
+    split
+) 
+from radon.model.errors import ResourceConflictError
 
 
 CHUNK_SIZE = 1048576
@@ -283,16 +290,16 @@ class CassandraAuthentication(BasicAuthentication):
 
 def ldap_authenticate(username, password):
     """Try to authenticate to a LDAP server (stored in settings)"""
-    if settings.AUTH_LDAP_SERVER_URI is None:
+    if cfg.auth_ldap_server_uri is None:
         return False
 
-    if settings.AUTH_LDAP_USER_DN_TEMPLATE is None:
+    if cfg.auth_ldap_user_dn_template is None:
         return False
 
     try:
-        connection = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
+        connection = ldap.initialize(cfg.auth_ldap_server_uri)
         connection.protocol_version = ldap.VERSION3
-        user_dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {"user": username}
+        user_dn = cfg.auth_ldap_user_dn_template % {"user": username}
         connection.simple_bind_s(user_dn, password)
         return True
     except ldap.INVALID_CREDENTIALS:
@@ -367,10 +374,7 @@ class CDMIView(APIView):
         # In CDMI standard a container is defined by the / at the end
         is_container = path.endswith("/")
         if is_container:
-            if path == "/":  # root
-                return self.read_container(path)
-            else:
-                return self.read_container(path[:-1])
+            return self.read_container(path)
         else:
             return self.read_data_object(path)
 
@@ -391,10 +395,7 @@ class CDMIView(APIView):
         # In CDMI standard a container is defined by the / at the end
         is_container = path.endswith("/")
         if is_container:
-            if path == "/":  # root
-                return self.put_container(path)
-            else:
-                return self.put_container(path[:-1])
+            return self.put_container(path)
         else:
             return self.put_data_object(path)
 
@@ -418,7 +419,7 @@ class CDMIView(APIView):
             return Response(status=HTTP_409_CONFLICT)
         elif is_container:
             # Delete container
-            return self.delete_container(path[:-1])
+            return self.delete_container(path)
         else:
             # Delete data object
             return self.delete_data_object(path)
@@ -563,7 +564,6 @@ class CDMIView(APIView):
                 u"User {} tried to read resource at '{}'".format(self.user, path)
             )
             return Response(status=HTTP_403_FORBIDDEN)
-
         cdmi_resource = CDMIResource(resource, self.api_root)
         if self.http_mode:
             if cdmi_resource.is_reference():
@@ -751,7 +751,6 @@ class CDMIView(APIView):
         res = self.put_container_metadata(collection)
         if res != HTTP_204_NO_CONTENT:
             return Response(status=res)
-        print(self.http_mode)
         if self.http_mode:
             # Specification states that:
             #
@@ -804,14 +803,11 @@ class CDMIView(APIView):
             collection.update(metadata=metadata)
         return HTTP_204_NO_CONTENT
 
-    def create_data_object(self, raw_data, metadata=None, create_ts=None, acl=None):
+    def create_data_object(self, raw_data):
         """Put a new resource"""
         data_object = DataObject.create(
             raw_data,
-            settings.COMPRESS_UPLOADS,
-            metadata=metadata,
-            create_ts=create_ts,
-            acl=acl,
+            settings.COMPRESS_UPLOADS
         )
         return data_object.uuid
 
@@ -867,18 +863,15 @@ class CDMIView(APIView):
         if resource:
             # Update value
             # Delete old blobs
-            old_meta = resource.get_metadata()
-            old_acl = resource.get_acl()
             create_ts = resource.get_create_ts()
-
-            resource.delete_blobs()
+            if not resource.is_reference():
+                resource.delete_data_objects()
+            
             uuid = None
             seq_num = 0
             for chk in chunkstring(content, CHUNK_SIZE):
                 if uuid is None:
-                    uuid = self.create_data_object(
-                        chk, metadata=old_meta, acl=old_acl, create_ts=create_ts
-                    )
+                    uuid = self.create_data_object(chk)
                 else:
                     self.append_data_object(uuid, seq_num, chk)
                 seq_num += 1
@@ -895,7 +888,8 @@ class CDMIView(APIView):
         """Upload data object in cdmi mode"""
         tmp = self.request.content_type.split("; ")
         content_type = tmp[0]
-        metadata = {}
+        user_meta = {}
+        sys_meta = {}
         if not content_type:
             # This is mandatory - either application/cdmi-object or
             # mimetype of data object to create
@@ -944,7 +938,7 @@ class CDMIView(APIView):
                         return Response(status=HTTP_400_BAD_REQUEST)
                 elif encoding != "utf-8":
                     return Response(status=HTTP_400_BAD_REQUEST)
-                metadata["cdmi_valuetransferencoding"] = encoding
+                sys_meta["cdmi_valuetransferencoding"] = encoding
                 if resource:
                     # Update value
                     # TODO: Delete old blob
@@ -959,7 +953,7 @@ class CDMIView(APIView):
                     if uuid is None:  # Content is null
                         uuid = self.create_empty_data_object()
                     url = "cassandra://{}".format(uuid)
-                    resource.update(url=url, size=len(content), mimetype=mimetype)
+                    resource.update(url=url, mimetype=mimetype)
                 else:
                     # Create resource
                     resource = self.create_resource(parent, name, content, mimetype)
@@ -973,14 +967,14 @@ class CDMIView(APIView):
 
         cdmi_resource = CDMIResource(resource, self.api_root)
         # Assemble metadata
-        metadata_body = request_body.get("metadata", {"cdmi_mimetype": mimetype})
+        metadata_body = request_body.get("metadata", {})
         if "cdmi_acl" in metadata_body:
             # We treat acl metadata in a specific way
             cdmi_acl = metadata_body["cdmi_acl"]
             del metadata_body["cdmi_acl"]
             resource.update_acl_cdmi(cdmi_acl)
-        metadata.update(metadata_body)
-        resource.update(metadata=metadata)
+        user_meta.update(metadata_body)
+        resource.update(user_meta=user_meta)
 
         if cdmi_resource.is_reference():
             field_dict = FIELDS_REFERENCE

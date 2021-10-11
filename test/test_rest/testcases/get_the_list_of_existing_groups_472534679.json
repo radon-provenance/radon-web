@@ -1,0 +1,26 @@
+{
+  "details": {
+    "summary": "Create a new group",
+    "authorizationId": "32553071"
+  },
+  "validation": {
+    "assertions": [
+      {
+        "source": "statusCode",
+        "property": null,
+        "operator": "equalToNumber",
+        "expectedValue": "201"
+      }
+    ]
+  },
+  "request": {
+    "url": "http://127.0.0.1:8000/api/admin/groups",
+    "method": "POST",
+    "body": {
+      "content": {
+        "groupname": "testGroupAPI"
+      },
+      "type": "json"
+    }
+  }
+}

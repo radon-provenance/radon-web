@@ -1,0 +1,29 @@
+{
+  "details": {
+    "summary": "Create a new user",
+    "authorizationId": "32553071"
+  },
+  "validation": {
+    "assertions": [
+      {
+        "source": "statusCode",
+        "property": null,
+        "operator": "equalToNumber",
+        "expectedValue": "201"
+      }
+    ]
+  },
+  "request": {
+    "url": "http://127.0.0.1:8000/api/admin/users",
+    "method": "POST",
+    "body": {
+      "content": {
+        "username": "testUserAPI",
+        "password": "test",
+        "email": "test@radon.com",
+        "administrator": "true"
+      },
+      "type": "json"
+    }
+  }
+}
