@@ -1,3 +1,9 @@
+# Test the web server
+
+python3 -m venv ~/ve/radon-web
+source ~/ve/radon-web/bin/activate
+pip install -r requirements.txt
+
 
 # Build Docker image
 cd ..

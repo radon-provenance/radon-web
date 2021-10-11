@@ -1,21 +1,20 @@
-"""Copyright 2019 -
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Copyright 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import mimetypes
 
-from radon.models.collection import Collection
+from radon.model import Collection
 
 
 class CDMIContainer():
@@ -54,23 +53,26 @@ class CDMIContainer():
         else:
             return "0-0"
 
+
     def get_completionStatus(self):
         """Mandatory - A string indicating if the object is still in the
         process of being created or updated by another operation,"""
-        val = self.collection.get_metadata_key("cdmi_completionStatus")
-        if not val:
-            val = "Complete"
+        val = self.collection.get_cdmi_sys_meta().get("cdmi_completionStatus",
+                                                      "Complete")
         return val
+
 
     def get_domainURI(self):
         """Mandatory URI of the owning domain"""
         return "{0}/cdmi_domains/radon/".format(self.api_root)
 
+
     def get_metadata(self):
         """Return metadata"""
-        md = self.collection.get_cdmi_metadata()
+        md = self.collection.get_cdmi_user_meta()
         md.update(self.collection.get_acl_metadata())
         return md
+
 
     def get_objectID(self):
         """Mandatory object ID of the object"""
@@ -112,10 +114,8 @@ class CDMIContainer():
         """Optional - Indicate the percentage of completion as a numeric
         integer value from 0 through 100. 100 if the completionStatus is
         'Complete'"""
-
-        val = self.collection.get_metadata_key("cdmi_percentComplete")
-        if not val:
-            val = "100"
+        val = self.collection.get_cdmi_sys_meta().get("cdmi_percentComplete",
+                                                      "100")
         return val
 
 
@@ -139,9 +139,8 @@ class CDMIResource():
     def get_completionStatus(self):
         """Mandatory - A string indicating if the object is still in the
         process of being created or updated by another operation,"""
-        val = self.resource.get_metadata_key("cdmi_completionStatus")
-        if not val:
-            val = "Complete"
+        val = self.resource.get_cdmi_sys_meta().get("cdmi_completionStatus",
+                                                      "Complete")
         return val
 
     def get_domainURI(self):
@@ -154,7 +153,7 @@ class CDMIResource():
 
     def get_metadata(self):
         """Return metadata of the resource"""
-        md = self.resource.get_cdmi_metadata()
+        md = self.resource.get_cdmi_user_meta()
         md.update(self.resource.get_acl_metadata())
         return md
 
@@ -207,10 +206,8 @@ class CDMIResource():
         """Optional - Indicate the percentage of completion as a numeric
         integer value from 0 through 100. 100 if the completionStatus is
         'Complete'"""
-
-        val = self.resource.get_metadata_key("cdmi_percentComplete")
-        if not val:
-            val = "100"
+        val = self.resource.get_cdmi_sys_meta().get("cdmi_percentComplete",
+                                                      "100")
         return val
 
     def get_reference(self):
@@ -228,7 +225,6 @@ class CDMIResource():
         data = []
         for chk in self.chunk_content():
             data.append(chk)
-        print(data)
         res = b"".join([s for s in data])
         if child_range:
             start, stop = (int(el) for el in child_range.split("-", 1))
@@ -251,4 +247,4 @@ class CDMIResource():
 
     def is_reference(self):
         """Check if the resource is a reference"""
-        return self.resource.is_reference
+        return self.resource.is_reference()

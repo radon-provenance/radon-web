@@ -1,12 +1,14 @@
 
-  {% for m in metadata %}
-    {% if m.0|length > 4000 or m.1|length > 4000 %}
-      <span class="label label-{{label}}" data-toggle="tooltip" title="{{ m.0 }} = {{ m.1 }}">
-           ...
-      </span>&nbsp;&nbsp;
-    {% else %}
-       <span class="label label-{{label}}">
-       {{ m.0 }} = {{ m.1 }}
-       </span>&nbsp;&nbsp;
-    {% endif %}
-  {% endfor %}
+<div class="meta-container">
+  <div class="meta-title">{{title}}</div>
+  <table class="meta-table">
+    <thead>
+      <tr><th>Name</th><th>Value</th></tr>
+    </thead>
+    <tbody>
+      {% for m in metadata %}
+      <tr><th>{{ m.0 }}</th><td>{{ m.1 }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

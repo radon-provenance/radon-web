@@ -1,12 +1,7 @@
 {
   "details": {
     "summary": "Update Data Object (CDMI)",
-    "description": "",
-    "externalId": "",
-    "condition": "",
-    "loopSource": "",
     "waitForseconds": null,
-    "runnable": true,
     "authorizationId": "32553071"
   },
   "validation": {
@@ -15,16 +10,12 @@
         "source": "statusCode",
         "property": null,
         "operator": "equalToNumber",
-        "expectedValue": "204"
+        "expectedValue": "201"
       }
     ],
     "expectedBody": {
-      "content": {},
-      "type": "json"
-    },
-    "expectedSchema": {
-      "content": {},
-      "type": "json"
+      "content": "",
+      "type": "others"
     }
   },
   "request": {
@@ -34,20 +25,15 @@
       "X-CDMI-Specification-Version": "1.1",
       "Accept": "application/cdmi-object"
     },
-    "queryParams": [],
     "body": {
       "content": {
         "mimetype": "text/plain",
         "metadata": {
-          "colour": "red"
+          "colour": "blue"
         },
-        "value": "This is the Value of this Data Object"
+        "value": "This is the new Value of this Data Object"
       },
-      "type": "json",
-      "formParams": []
+      "type": "json"
     }
-  },
-  "variables": [],
-  "iterationResultVariable": "",
-  "resultVariable": ""
+  }
 }

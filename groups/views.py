@@ -1,17 +1,16 @@
-"""Copyright 2019 -
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Copyright 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -19,9 +18,15 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import Http404
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-
-from groups.forms import GroupForm, GroupAddForm
-from radon.models import Group, User
+ 
+from groups.forms import (
+    GroupForm,
+    GroupAddForm
+)
+from radon.model import (
+    Group,
+    User
+)
 
 
 @login_required
@@ -38,7 +43,7 @@ def add_user(request, name):
         if form.is_valid():
             data = form.cleaned_data
             new_users = data.get("users", [])
-            added, _, _ = group.add_users(new_users)
+            added, _, _ = group.add_users(new_users, username=request.user.name)
             if added:
                 msg = "{} has been added to the group '{}'".format(
                     ", ".join(added), group.name
@@ -48,14 +53,14 @@ def add_user(request, name):
                 msg = "No user has been added to the group '{}'".format(group.name)
             messages.add_message(request, messages.INFO, msg)
             return redirect("groups:view", name=name)
-
+ 
     else:
         form = GroupAddForm(users)
-
+ 
     ctx = {"group": group, "form": form, "users": users}
     return render(request, "groups/add.html", ctx)
-
-
+ 
+ 
 @login_required
 def delete_group(request, name):
     """Delete a group"""
@@ -70,24 +75,24 @@ def delete_group(request, name):
             request, messages.INFO, "The group '{}' has been deleted".format(group.name)
         )
         return redirect("groups:home")
-
+ 
     # Requires delete on user
     ctx = {
         "group": group,
     }
     return render(request, "groups/delete.html", ctx)
-
-
+ 
+ 
 @login_required
 def edit_group(request, name):
     """Edit a group (add/delete users)"""
     group = Group.find(name)
     if not group:
         raise Http404()
-
+ 
     if not request.user.administrator:
         raise PermissionDenied
-
+ 
     if request.method == "POST":
         form = GroupForm(request.POST)
         if form.is_valid():
@@ -97,15 +102,15 @@ def edit_group(request, name):
     else:
         initial_data = {"name": group.name}
         form = GroupForm(initial=initial_data)
-
+ 
     ctx = {
         "form": form,
         "group": group,
     }
-
+ 
     return render(request, "groups/edit.html", ctx)
-
-
+ 
+ 
 @login_required
 def group_view(request, name):
     """Display the content of a group (users)"""
@@ -115,13 +120,13 @@ def group_view(request, name):
         # raise Http404
     ctx = {"user": request.user, "group_obj": group, "members": group.get_usernames()}
     return render(request, "groups/view.html", ctx)
-
-
+ 
+ 
 @login_required
 def home(request):
     """"Display the main page fro groups (list of clickable groups)"""
     group_objs = list(Group.objects.all())
-
+ 
     paginator = Paginator(group_objs, 10)
     page = request.GET.get("page")
     try:
@@ -132,11 +137,11 @@ def home(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         groups = paginator.page(paginator.num_pages)
-
+ 
     ctx = {"user": request.user, "groups": groups, "group_count": len(group_objs)}
     return render(request, "groups/index.html", ctx)
-
-
+ 
+ 
 @login_required
 def new_group(request):
     """Display the form to create a new group"""
@@ -156,10 +161,10 @@ def new_group(request):
     ctx = {
         "form": form,
     }
-
+ 
     return render(request, "groups/new.html", ctx)
-
-
+ 
+ 
 @login_required
 def rm_user(request, name, uname):
     """Remove a user from a group"""
@@ -168,7 +173,7 @@ def rm_user(request, name, uname):
     if not request.user.administrator:
         raise PermissionDenied
     if user and group:
-        removed, not_there, not_exist = group.rm_user(uname)
+        removed, not_there, not_exist = group.rm_user(uname, username=request.user.name)
         if removed:
             msg = "'{}' has been removed from the group '{}'".format(uname, name)
         elif not_there:

@@ -24,19 +24,5 @@
 
 </div>
 
-{% if collection.metadata %}
-<div class="row" style="margin-top: 10px;">
-    {% if collection.can_read %}
-        <div class="col-md-12">
-            {% include "archive/snippets/metadata.html" with metadata=collection.metadata label='default'%}
-        </div>
-    {% endif %}
-</div>
-{% endif %}
-
-{# Hidden fields are showing debug information from search results #}
-<span style="display:none;">
-    <span>Hit count: {{ c.hit_count }}</span>
-</span>
 <hr/>
 

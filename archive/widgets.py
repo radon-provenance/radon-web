@@ -1,17 +1,16 @@
-"""Copyright 2019 -
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Copyright 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import json
 from django.forms import Widget
@@ -22,7 +21,7 @@ from django.forms.utils import flatatt
 class JsonPairInputs(Widget):
     """A widget that displays JSON Key Value Pairs
     as a list of text input box pairs
-
+ 
     Usage (in forms.py) :
     examplejsonfield = forms.CharField(label  = "Example JSON Key Value Field", required = False,
                                        widget = JsonPairInputs(val_attrs={'size':35},
@@ -49,7 +48,7 @@ class JsonPairInputs(Widget):
 
     def render(self, name, value, attrs=None, renderer=None):
         """Renders this widget into an html string
-
+ 
         args:
         name  (str)  -- name of the field
         value (str)  -- a json string of a two-tuple list automatically passed in by django
@@ -103,6 +102,7 @@ class JsonPairInputs(Widget):
                 )
         ret = '<span id="metadata_fields">' + ret + "</span>"
         return mark_safe(ret)
+
 
     def value_from_datadict(self, data, files, name):
         """

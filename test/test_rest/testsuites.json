@@ -1,6 +1,6 @@
 [
   {
-    "name": "Sample Test Suite",
+    "name": "Radon CDMI API",
     "description": "",
     "testCaseIds": [
       "611377765",
@@ -12,14 +12,28 @@
       "676811524",
       "964321087",
       "821166978",
-      "685470265",
       "246155163",
       "227270621",
       "510272752",
       "567122791",
-      "687923346",
       "441682941",
       "817570096"
+    ]
+  },
+  {
+    "name": "Radon Admin API",
+    "description": "",
+    "testCaseIds": [
+      "get_the_list_of_existing_groups_361765713",
+      "get_the_list_of_existing_groups_472534679",
+      "create_a_new_group_855895522",
+      "get_information_on_an_existing_group_187029706",
+      "delete_an_existing_group_362557366",
+      "get_the_list_of_existing_groups_798097038",
+      "create_a_new_group_183539142",
+      "get_information_on_an_existing_group_403026605",
+      "delete_an_existing_group_430754759",
+      "modify_an_existing_group_411952193"
     ]
   }
 ]

@@ -1,17 +1,16 @@
-"""Copyright 2019 -
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Copyright 2021
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -19,11 +18,12 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.contrib import messages
-from django.conf import settings
-import ldap
 
 from users.forms import UserForm
-from radon.models import Group, User
+from radon.model import (
+    Group,
+    User
+)
 
 
 @login_required
@@ -31,7 +31,7 @@ def home(request):
     """Homepage for the user view"""
     # TODO: Order by username
     user_objs = list(User.objects.all())
-
+ 
     paginator = Paginator(user_objs, 10)
     page = request.GET.get("page")
     try:
@@ -42,7 +42,7 @@ def home(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         users = paginator.page(paginator.num_pages)
-
+ 
     ctx = {"user": request.user, "users": users, "user_count": len(user_objs)}
     return render(request, "users/index.html", ctx)
 
@@ -66,41 +66,18 @@ def userlogin(request):
         if not user:
             errors = invalid
         else:
-            if not user.authenticate(password) and not ldap_authenticate(
-                username, password
-            ):
+            if not user.authenticate(password):
                 errors = invalid
-
+ 
         if not errors:
             request.session["user"] = user.name
             return redirect("/")
-
+ 
     ctx = {}
     if errors:
         ctx = {"errors": errors}
-
+ 
     return render(request, "users/login.html", ctx)
-
-
-def ldap_authenticate(username, password):
-    """Try to authenticate against an existing ldap server"""
-    if settings.AUTH_LDAP_SERVER_URI is None:
-        return False
-
-    if settings.AUTH_LDAP_USER_DN_TEMPLATE is None:
-        return False
-
-    try:
-        connection = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
-        connection.protocol_version = ldap.VERSION3
-        user_dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {"user": username}
-        connection.simple_bind_s(user_dn, password)
-        return True
-    except ldap.INVALID_CREDENTIALS:
-        return False
-    except ldap.SERVER_DOWN:
-        # TODO: Return error instead of none
-        return False
 
 
 @login_required
@@ -112,7 +89,7 @@ def delete_user(request, name):
 
     if not request.user.administrator:
         raise PermissionDenied
-
+ 
     if request.method == "POST":
         user.delete(username=request.user.name)
         messages.add_message(
@@ -135,10 +112,10 @@ def edit_user(request, name):
     user = User.find(name)
     if not user:
         raise Http404()
-
+ 
     if not request.user.administrator:
         raise PermissionDenied
-
+ 
     if request.method == "POST":
         form = UserForm(request.POST)
         if form.is_valid():
@@ -166,7 +143,7 @@ def edit_user(request, name):
         "form": form,
         "user": user,
     }
-
+ 
     return render(request, "users/edit.html", ctx)
 
 
@@ -179,7 +156,6 @@ def new_user(request):
             data = form.cleaned_data
             user = User.create(
                 name=data.get("username"),
-                # TODO: Check if we can't harmonize unicode use for passwords between django and CLI
                 password=data.get("password").encode("ascii", "ignore"),
                 email=data.get("email", ""),
                 administrator=data.get("administrator", False),
@@ -194,7 +170,7 @@ def new_user(request):
             return redirect("users:home")
     else:
         form = UserForm()
-
+ 
     ctx = {
         "form": form,
     }
@@ -215,8 +191,7 @@ def user_view(request, name):
     user = User.find(name)
     if not user:
         return redirect("users:home")
-        # raise Http404
-
+ 
     ctx = {
         "req_user": request.user,
         "user_obj": user,
