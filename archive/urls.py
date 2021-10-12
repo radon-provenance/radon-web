@@ -22,7 +22,6 @@ from archive.views import (
     edit_resource,
     home,
     new_collection,
-    new_reference,
     new_resource,
     preview,
     search,

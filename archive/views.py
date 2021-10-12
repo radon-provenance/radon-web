@@ -104,6 +104,70 @@ def delete_resource(request, path):
 
 
 @login_required
+def new_reference(request, parent):
+    """Manage the forms to create a new reference resource"""
+    parent_collection = Collection.find(parent)
+    # Inherits perms from container by default.
+    if not parent_collection:
+        raise Http404()
+
+    # User must be able to write to this collection
+    if not parent_collection.user_can(request.user, "write"):
+        raise PermissionDenied
+
+    read_access, write_access = parent_collection.get_acl_list()
+    initial = {
+        "metadata": {},
+        "read_access": read_access,
+        "write_access": write_access,
+    }
+
+    if request.method == "POST":
+        form = ReferenceNewForm(request.POST, initial=initial)
+        if form.is_valid():
+            data = form.cleaned_data
+            try:
+                url = data["url"]
+                name = data["name"]
+                metadata = {}
+
+                for k, v in json.loads(data["metadata"]):
+                    if k in metadata:
+                        if isinstance(metadata[k], list):
+                            metadata[k].append(v)
+                        else:
+                            metadata[k] = [metadata[k], v]
+                    else:
+                        metadata[k] = v
+
+                resource = Resource.create(
+                    container=parent_collection.path,
+                    name=name,
+                    metadata=metadata,
+                    url=url,
+                    username=request.user.name,
+                )
+                resource.create_acl_list(data["read_access"], data["write_access"])
+                messages.add_message(
+                    request,
+                    messages.INFO,
+                    u"New resource '{}' created".format(resource.get_name()),
+                )
+            except ResourceConflictError:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "That name is in use within the current collection",
+                )
+
+            return redirect("archive:view", path=parent_collection.path)
+    else:
+        form = ReferenceNewForm(initial=initial)
+
+    ctx = {"form": form, "container": parent_collection, "groups": Group.objects.all()}
+    return render(request, "archive/resource/new_reference.html", ctx)
+
+
 def download(request, path):
     """ Download the content of a resource"""
     resource = Resource.find(path)
