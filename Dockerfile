@@ -9,7 +9,7 @@ ENV CQLENG_ALLOW_SCHEMA_MANAGEMENT 1
 
 RUN apt -y update && \
   apt install -y nano less python-dev libldap2-dev libsasl2-dev libssl-dev apt-utils && \
-pip install --upgrade pip
+  pip install --upgrade pip
 
 # Create destination folders
 
@@ -24,9 +24,8 @@ RUN python setup.py develop
 
 
 # Install radon-web
-WORKDIR /code/radon-web
 COPY radon-web /code/radon-web
+WORKDIR /code/radon-web
 RUN pip install -r requirements.txt
-
 RUN python manage.py collectstatic --noinput
 RUN python manage.py migrate --run-syncdb
