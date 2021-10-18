@@ -84,6 +84,9 @@ def home(request):
             user = User.find(notif["username"])
             if user:
                 user_dict = user.to_dict()
+            else:
+                user_dict = { 'name': notif["username"], 
+                              'email': notif["username"]+ '@radon.org' }
         variables = {"user": user_dict, "when": notif["when"], "object": object_dict}
 
         ctx = template.Context(variables)
