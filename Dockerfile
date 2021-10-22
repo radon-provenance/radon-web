@@ -1,27 +1,29 @@
 # Dockerfile
 FROM python:3.6
 
-ENV PYTHONUNBUFFERED 1
+# Hostnames for dse and mqtt servers
+ARG DSE_HOST
+ARG MQTT_HOST
 
-ENV DSE_HOST 172.17.0.3
-ENV MQTT_HOST 172.17.0.5
+ENV PYTHONUNBUFFERED 1
+ENV DSE_HOST=${DSE_HOST}
+ENV MQTT_HOST=${MQTT_HOST}
 ENV CQLENG_ALLOW_SCHEMA_MANAGEMENT 1
 
+# Install prerequisites
 RUN apt -y update && \
   apt install -y nano less python-dev libldap2-dev libsasl2-dev libssl-dev apt-utils && \
   pip install --upgrade pip
 
 # Create destination folders
-
 RUN mkdir -p /code/radon-lib && \
   mkdir -p /code/radon-web
-  
+
 # Install radon-lib
 COPY radon-lib /code/radon-lib
 WORKDIR /code/radon-lib
 RUN pip install -r requirements.txt
 RUN python setup.py develop
-
 
 # Install radon-web
 COPY radon-web /code/radon-web
