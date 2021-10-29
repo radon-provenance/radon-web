@@ -28,6 +28,7 @@ urlpatterns = [
     path("cdmi_capabilities<path:path>", capabilities, name="capabilities"),
     # Find by uuid will require an improvement of the schema (TODO)
     # url(r'^cdmi_objectid/(?P<id>.*)$', crud_id, name='crud_id'),
+    path("", CDMIView.as_view(), name="api_cdmi_root"),
     path("<path:path>", CDMIView.as_view(), name="api_cdmi"),
     #    url(r'^api-auth/', include('rest_framework.urls'))
 ]
