@@ -26,14 +26,14 @@ class CDMIContainer():
 
     def get_capabilitiesURI(self):
         """Mandatory URI to the capabilities for the object"""
-        return u"{0}/cdmi_capabilities/container{1}" "".format(
+        return "{0}/cdmi_capabilities/container{1}" "".format(
             self.api_root, self.collection.path
         )
 
     def get_children(self, child_range=None):
         """Mandatory - Names of the children objects in the container object."""
         child_c, child_r = self.collection.get_child()
-        child_c = [u"{}/".format(c) for c in child_c]
+        child_c = ["{}".format(c) for c in child_c]
         res = child_c + child_r
         if child_range:
             start, stop = (int(el) for el in child_range.split("-", 1))
@@ -92,7 +92,7 @@ class CDMIContainer():
         We don't support objects only accessible by ID so this is mandatory"""
         parent_path = self.collection.container
         if self.collection.is_root:
-            parent_path = u"/"
+            parent_path = "/"
         parent = Collection.find(parent_path)
         return parent.uuid
 
@@ -103,8 +103,8 @@ class CDMIContainer():
         # root)
         parent_path = self.collection.container
         if parent_path not in ('/', 'null'):
-            parent_path = u"{}/".format(parent_path)
-        return u"{}".format(parent_path)
+            parent_path = "{}".format(parent_path)
+        return "{}".format(parent_path)
 
     def get_path(self):
         """Return collection path"""
@@ -132,7 +132,7 @@ class CDMIResource():
 
     def get_capabilitiesURI(self):
         """Mandatory URI to the capabilities for the object"""
-        return u"{0}/cdmi_capabilities/dataobject{1}" "".format(
+        return "{0}/cdmi_capabilities/dataobject{1}" "".format(
             self.api_root, self.resource.path
         )
 
@@ -195,8 +195,8 @@ class CDMIResource():
         # root)
         parent_path = self.resource.container
         if parent_path != "/":
-            parent_path = u"{}/".format(parent_path)
-        return u"{}".format(parent_path)
+            parent_path = "{}".format(parent_path)
+        return "{}".format(parent_path)
 
     def get_path(self):
         """Return resource path"""

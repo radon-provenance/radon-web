@@ -370,7 +370,7 @@ class CDMIView(APIView):
 
         # Add a '/' at the beginning if not present
         if not path.startswith("/"):
-            path = u"/{}".format(path)
+            path = "/{}".format(path)
         # In CDMI standard a container is defined by the / at the end
         is_container = path.endswith("/")
         if is_container:
@@ -391,7 +391,7 @@ class CDMIView(APIView):
 
         # Add a '/' at the beginning if not present
         if not path.startswith("/"):
-            path = u"/{}".format(path)
+            path = "/{}".format(path)
         # In CDMI standard a container is defined by the / at the end
         is_container = path.endswith("/")
         if is_container:
@@ -995,7 +995,7 @@ class CDMIView(APIView):
                 body[field] = get_field()
             except AttributeError:
                 self.logger.error(
-                    u"Parameter problem for resource '{}' ('{}={}')".format(
+                    "Parameter problem for resource '{}' ('{}={}')".format(
                         cdmi_resource.get_path(), field, value
                     )
                 )
@@ -1013,7 +1013,7 @@ class CDMIView(APIView):
             # Try to put a data_object when a collection of the same name
             # already exists
             self.logger.info(
-                u"Impossible to create a new resource, the collection '{}' already exists, try to update it".format(
+                "Impossible to create a new resource, the collection '{}' already exists, try to update it".format(
                     path
                 )
             )
@@ -1027,7 +1027,7 @@ class CDMIView(APIView):
             # Update Resource
             if not resource.user_can(self.user, "edit"):
                 self.logger.warning(
-                    u"User {} tried to modify resource at '{}'".format(self.user, path)
+                    "User {} tried to modify resource at '{}'".format(self.user, path)
                 )
                 return Response(status=HTTP_403_FORBIDDEN)
         else:
@@ -1035,7 +1035,7 @@ class CDMIView(APIView):
             parent_collection = Collection.find(parent)
             if not parent_collection:
                 self.logger.info(
-                    u"Fail to create a resource at '{}', collection doesn't exist".format(
+                    "Fail to create a resource at '{}', collection doesn't exist".format(
                         path
                     )
                 )
@@ -1043,7 +1043,7 @@ class CDMIView(APIView):
             # Check if user can create a new resource in the collection
             if not parent_collection.user_can(self.user, "write"):
                 self.logger.warning(
-                    u"User {} tried to create new resource at '{}'".format(
+                    "User {} tried to create new resource at '{}'".format(
                         self.user, path
                     )
                 )
