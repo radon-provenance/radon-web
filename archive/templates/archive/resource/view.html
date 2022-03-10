@@ -18,8 +18,8 @@
     {% else %}
         <li><a href="{% url 'archive:view' path=full %}">{{coll}}</a></li>
     {% endif %}
-   <li>{{resource.name}}</li>
   {% endfor %}
+   <li>{{resource.name}}</li>
 </ol>
 
 
