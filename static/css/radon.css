@@ -1,0 +1,111 @@
+.float-right {
+  float: right;
+}
+
+
+/* Metadata table for collections */
+
+.meta-container {
+  border-radius: 15px;
+  border: 1px dotted #428bca;
+  padding: 10px; 
+}
+
+
+.meta-title {
+  width: max-content;
+  margin-left: 1em;
+  margin-top: -1.4em;
+  background:white;
+}
+
+.meta-table {
+  border-spacing: 0;
+  width:100%;
+}
+
+.meta-table thead th {
+    background-color: #f5f5f5;
+    border: 1px solid #f5f5f5;
+    font-weight: normal;
+    text-align: center;
+    color: #18bc9c;
+}
+
+.meta-table thead th:first-of-type {
+    background-color: #aaaaca;
+    color: white;
+    width: 25%;
+}
+
+.meta-table tbody tr:nth-child(even) {background-color: #f5f5f5}
+.meta-table tbody tr:nth-child(odd) {background-color: #ffffff}
+
+
+/* */
+
+.progress {
+    height: 24px;
+}
+.progress-bar {
+    line-height: 24px !important;
+    font-weight: bold;
+    font-size: 1.4em !important;
+}
+
+.user-tab {
+    margin: 0px;
+    margin-bottom: 10px;
+    background-color: #7BAEC7;
+    color: white;
+    border-radius: 4px;
+}
+
+.user-tab a {
+    color: white;
+}
+
+.height-30 {
+    height: 30px;
+}
+
+ul.nav-sidebar {
+    margin-top: 60px;
+}
+
+.error {
+    color: red;
+}
+
+.blue-icon {
+    color: #468CC8;
+}
+
+.gray-icon {
+    color: #999;
+}
+
+.status-up {
+    color: #28BB9C;
+}
+.status-unknown {
+    color: yellow;
+}
+.status-down {
+    color: #E54D42;
+}
+
+
+.activity-item {
+    margin: 10px;
+    padding: 20px;
+    background-color: #eee;
+}
+
+.activity-timespan {
+    float: right;
+}
+
+.activity-message {
+    margin-left: 20px;
+}

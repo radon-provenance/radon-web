@@ -36,7 +36,8 @@ from archive.forms import (
 from radon.model import (
     Collection, 
     Group,
-    Resource
+    Resource,
+    Search
 )
 from radon.model.errors import (
     CollectionConflictError,
@@ -357,6 +358,7 @@ def new_collection(request, parent):
                     creator=request.user.name,
                 )
                 collection.create_acl_list(data["read_access"], data["write_access"])
+                
                 messages.add_message(
                     request,
                     messages.INFO,
@@ -375,7 +377,6 @@ def new_collection(request, parent):
                     messages.ERROR,
                     "That name is in use in the current collection",
                 )
- 
     groups = Group.objects.all()
     return render(
         request,
@@ -478,7 +479,7 @@ def search(request):
  
     terms = [x.lower() for x in query.split(" ")]
  
-    results = SearchIndex.find(terms, request.user)
+    results = Search.search(terms, request.user)
  
     if collection:
         results = [el for el in results if el["path"].startswith(collection)]
@@ -516,6 +517,7 @@ def view_collection(request, path='/'):
     children_c, children_r = collection.get_child(False)
     children_c.sort(key=lambda x: x.lower())
     children_r.sort(key=lambda x: x.lower())
+    
         
     ctx = {
         "collection": collection.to_dict(request.user),
@@ -528,6 +530,7 @@ def view_collection(request, path='/'):
         "collection_paths": paths,
         "empty": len(children_c) + len(children_r) == 0,
     }
+    
     return render(request, "archive/index.html", ctx)
 
 
