@@ -27,6 +27,7 @@ from radon.model import (
     Group,
     User
 )
+from radon.model.errors import GroupConflictError
 
 
 @login_required
@@ -149,12 +150,20 @@ def new_group(request):
         form = GroupForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            group = Group.create(name=data.get("name"), username=request.user.name)
-            messages.add_message(
-                request,
-                messages.INFO,
-                "The group '{}' has been created".format(group.name),
-            )
+            groupname = data.get("name")
+            try:
+                group = Group.create(name=groupname, username=request.user.name)
+                messages.add_message(
+                    request,
+                    messages.INFO,
+                    "The group '{}' has been created".format(group.name),
+                )
+            except GroupConflictError:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Group '{}' already exists".format(groupname),
+                )
             return redirect("groups:home")
     else:
         form = GroupForm()

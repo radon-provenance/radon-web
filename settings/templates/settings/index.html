@@ -1,0 +1,44 @@
+{% extends "settings/base.html" %}
+
+{% block title %}Settings{% endblock title %}
+
+
+{% block main_content %}
+
+<h2>Settings</h2>
+
+<h3>Search settings</h3>
+
+<h4>User metadata indexes</h4>
+
+These are the user metadata keys which are indexed in the system
+
+<p>
+<table width="100%" class="table table-striped table-hover">
+  <tr>
+    <th width="5%"></th><th>Index name</th><th>Type</th>
+  </tr>
+  {% for i in indexes %}
+  <tr>
+    <td>
+      <a href="{% url 'settings:rm_index_field' field_name=i.0 %}">
+        <i class="blue-icon glyphicon glyphicon glyphicon-remove-circle"></i>
+      </a>
+    </td>
+    <td>{{i.0}}</td><td>{{i.1}}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+
+
+{% if user.administrator %}
+<div class="row">
+  <div class="pull-right">
+    <a class="btn btn-sm btn-success" href="{% url 'settings:add_index_field'%}">Add new search index</a>
+  </div>
+</div>
+<hr/>
+{% endif %}
+
+{% endblock main_content %}

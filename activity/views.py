@@ -35,7 +35,7 @@ from radon.model.notification import (
 
 @login_required
 def home(request):
-    """Default view for Activities"""
+    """Default view for Activities"""    
     notifications = Notification.recent(10)
     activities = []
     for notif in notifications:
@@ -93,3 +93,4 @@ def home(request):
         activities.append({"html": tmpl.render(ctx)})
 
     return render(request, "activity/index.html", {"activities": activities})
+

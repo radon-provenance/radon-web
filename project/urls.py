@@ -33,6 +33,7 @@ urlpatterns = [
     path("users/", include("users.urls", namespace="users")),
     path("about/", TemplateView.as_view(template_name="about.html"), name="about"),
     path("contact/", TemplateView.as_view(template_name="contact.html"), name="contact"),
+    path("settings/", include("settings.urls", namespace="settings")),
     path("api/cdmi/", include("rest_cdmi.urls", namespace="rest_cdmi")),
     path("api/admin/", include("rest_admin.urls", namespace="rest_admin")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

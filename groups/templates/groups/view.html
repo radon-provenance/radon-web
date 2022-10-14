@@ -1,12 +1,8 @@
-{% extends "base.html" %}
+{% extends "groups/base.html" %}
+
 {% load gravatar %}
 
 {% block title %}Groups - {{group_obj.name}}{% endblock title %}
-
-{% block sidebar %}
-    {% include "snippets/sidenav.html" with active="groups" %}
-{% endblock sidebar %}
-
 
 {% block main_content %}
     <h2>{% gravatar group_obj.name 40 %} {{ group_obj.name }}</h2>

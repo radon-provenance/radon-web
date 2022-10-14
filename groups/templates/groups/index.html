@@ -1,12 +1,6 @@
-{% extends "base.html" %}
-
+{% extends "groups/base.html" %}
 
 {% block title %}Groups{% endblock title %}
-
-{% block sidebar %}
-    {% include "snippets/sidenav.html" with active="groups" %}
-{% endblock sidebar %}
-
 
 {% block main_content %}
     <h2>Groups ({{ group_count }})</h2><hr/>

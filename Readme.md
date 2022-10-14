@@ -1,24 +1,70 @@
-# Test the web server
-
-python3 -m venv ~/ve/radon-web
-source ~/ve/radon-web/bin/activate
-pip install -r requirements.txt
+# Radon Web server
 
 
-# Build Docker image
-cd ..
-docker build -t radon-web-image .
+## Presentation
+
+The Web Interface is run as a Docker image on several nodes of the Radon 
+cluster. It is powered by Django/Gunicorn and provides a simple interface to the 
+Data Management System via a Web browser.
+
+All the CRUD functions are available through the interface and it displays the 
+hierarchy of the data objects/collections created in the system.
+
+It requires the radon-lib library to work to access the data stored in the 
+Cassandra database.
 
 
-# run image
+## Version
+
+The current version is 1.0.3
 
 
-docker run --rm --name radon-web -p 8000:8000 -ti radon-web-image:latest python manage.py runserver 0.0.0.0:8000
+## Install and test the web server for development
 
 
-docker run --rm --name radon-web -p 8000:8000 -ti radon-web-image:latest /bin/bash
+### Create its own virtual environment
+
+$ python3 -m venv ~/ve/radon-web
+$ source ~/ve/radon-web/bin/activate
 
 
+### Install Radon-lib
+
+$ cd ... /radon-lib/
+$ pip install -r requirements.txt
+$ python setup.py develop
+
+
+### Install Radon-web
+
+$ cd ... /radon-web/
+$ pip install -r requirements.txt
+$ python manage.py collectstatic --noinput
+$ python manage.py migrate --run-syncdb
+
+
+### Run Radon-web
+
+$ ./start.sh
+
+
+## Install with the docker image
+
+
+###  Build Docker image
+
+$ cd ..
+$ docker build -t radon-web-image .
+
+
+### Run image
+
+
+$ docker run --rm --name radon-web -p 8000:8000 -ti radon-web-image:latest python manage.py runserver 0.0.0.0:8000
+
+
+
+### Develop with the image
 
 docker run --rm --name radon-web -p 8000:8000 -v radon-lib:/code/radon-lib -ti radon-web-image:latest /bin/bash
 

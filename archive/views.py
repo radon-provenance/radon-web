@@ -474,19 +474,21 @@ def search(request):
     """Display the search results page"""
     query = request.GET.get("q")
     collection = request.GET.get("collection")
- 
+    
     ctx = {"q": query}
- 
-    terms = [x.lower() for x in query.split(" ")]
- 
-    results = Search.search(terms, request.user)
- 
+    
+    if not ":" in query:
+        solr_query = """solr_query='path:"{}"'""".format(query)
+    else:
+        solr_query = """solr_query='{}'""".format(query)
+    
+    results = Search.search(solr_query, request.user)
+    
     if collection:
         results = [el for el in results if el["path"].startswith(collection)]
- 
+    
     ctx["results"] = results
     ctx["total"] = len(ctx["results"])
-    ctx["highlights"] = terms
  
     return render(request, "archive/search.html", ctx)
 

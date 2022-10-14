@@ -1,10 +1,6 @@
-{% extends "base.html" %}
+{% extends "activity/base.html" %}
 
 {% block title %}Activity{% endblock title %}
-
-{% block sidebar %}
-    {% include "snippets/sidenav.html" with active="activity" %}
-{% endblock sidebar %}
 
 
 {% block main_content %}
@@ -16,5 +12,7 @@
     {{a.html|safe}}
     </div>
 {% endfor %}
+
+
 
 {% endblock main_content %}

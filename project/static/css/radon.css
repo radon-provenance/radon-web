@@ -2,6 +2,15 @@
   float: right;
 }
 
+.messages {    
+    background-color: #f5f5f5;
+}
+
+.messages .alert-error {    
+    background-color: #ffa5a5;
+}
+
+
 
 /* Metadata table for collections */
 

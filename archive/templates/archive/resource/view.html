@@ -4,6 +4,13 @@
 
 {% block main_content %}
 
+<h2> &nbsp;
+  <div class="div-search" style="width:400px;">
+    {% include "snippets/search_form.html" with q=q size="small"%}
+  </div>
+  </h2>
+<hr/>
+
 <h2>&nbsp;<a class="btn btn-success pull-right" href="{% url 'archive:download' path=resource.path %}">Download file</a>
 
 </h2>

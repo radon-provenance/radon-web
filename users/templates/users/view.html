@@ -1,12 +1,7 @@
-{% extends "base.html" %}
+{% extends "users/base.html" %}
 {% load gravatar %}
 
 {% block title %}Users - {{user_obj.name}}{% endblock title %}
-
-{% block sidebar %}
-    {% include "snippets/sidenav.html" with active="users" %}
-{% endblock sidebar %}
-
 
 {% block main_content %}
     <h2>{% gravatar user_obj.email 40 %} {{ user_obj.name }}</h2>

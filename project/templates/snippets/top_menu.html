@@ -1,0 +1,64 @@
+ <!-- Fixed navbar -->
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+
+    </div>
+
+    {% url 'home' as home %}
+    {% url 'about' as about %}
+    {% url 'contact' as contact %}
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li {% if request.path == home %}class="active"
+        {% endif %}>
+          <a href="/">Home</a>
+        </li>
+
+        {% if request.user.is_authenticated %}
+
+        <li {% if '/archive' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'archive:home' %}">Archive</a>
+        </li>
+        {% endif %}
+
+        <li {% if request.path == about %}class="active"
+        {% endif %}>
+          <a href="{% url 'about' %}">About</a>
+        </li>
+        <li {% if request.path == contact %}class="active"
+        {% endif %}>
+          <a href="{% url 'contact' %}">Contact</a>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+          {% if not request.user.is_authenticated %}
+              <li><a href="{% url 'users:auth_login' %}">Login</a></li>
+          {% else %}
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                Welcome, {{ request.user.get_full_name|default:request.user.name }}
+                <span class="caret"></span>
+              </a>
+               <ul class="dropdown-menu" role="menu">
+                {% if user.administrator %}
+                <li><a href="{% url 'users:home' %}">Users</a></li>
+                <li><a href="{% url 'groups:home' %}">Groups</a></li>
+                {% endif %}
+
+                <li><a href="{% url 'activity:home' %}">Activity</a></li>
+                <li class="divider"></li>
+                <li><a href="{% url 'users:auth_logout' %}">Logout</a></li>
+              </ul>
+            </li>
+          {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

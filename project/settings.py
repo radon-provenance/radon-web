@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "archive",
     "groups",
     "users",
+    "settings",
     "rest_cdmi",
     "rest_admin",
 ]
@@ -95,8 +96,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'project.wsgi.application'
-
-#FILE_UPLOAD_HANDLERS = ("archive.uploader.AgentUploader",)
 
 
 # Database
@@ -143,7 +142,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 CDMI_SERVER = {

@@ -37,115 +37,50 @@
 
   <body>
 
-    <!-- Fixed navbar -->
-    <nav class="navbar navbar-default navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
+  {% include "snippets/top_menu.html" %}
 
-        </div>
+  <div class="container-fluid">
 
-        {% url 'home' as home %}
-        {% url 'about' as about %}
-        {% url 'contact' as contact %}
-        <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li {% if request.path == home %}class="active"
-            {% endif %}>
-              <a href="/">Home</a>
-            </li>
+  {% block content %}
 
-            {% if request.user.is_authenticated %}
 
-            <li {% if '/archive' in request.path %}class="active"{% endif %}>
-                <a href="{% url 'archive:home' %}">Archive</a>
-            </li>
-            {% endif %}
+    {% if user.is_authenticated %}
+    <div class="row">
+      <div class="col-sm-3 col-md-2 sidebar">
+        <center>
+          <br/>
+          <a href="/"><img src="{% static 'img/side.png' %}" border="0"/></a>
+        </center>
+        
+		{% block sidebar %}
+		{% endblock sidebar %}
 
-            <li {% if request.path == about %}class="active"
-            {% endif %}>
-              <a href="{% url 'about' %}">About</a>
-            </li>
-            <li {% if request.path == contact %}class="active"
-            {% endif %}>
-              <a href="{% url 'contact' %}">Contact</a>
-            </li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-              {% if not request.user.is_authenticated %}
-                  <li><a href="{% url 'users:auth_login' %}">Login</a></li>
-              {% else %}
-                <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                    Welcome, {{ request.user.get_full_name|default:request.user.name }}
-                    <span class="caret"></span>
-                  </a>
-                   <ul class="dropdown-menu" role="menu">
-                    {% if user.administrator %}
-                    <li><a href="{% url 'users:home' %}">Users</a></li>
-                    {% endif %}
-
-                    <li><a href="{% url 'activity:home' %}">Activity</a></li>
-                    <li class="divider"></li>
-                    <li><a href="{% url 'users:auth_logout' %}">Logout</a></li>
-                  </ul>
-                </li>
-              {% endif %}
-          </ul>
-        </div>
       </div>
-    </nav>
-
-    <div class="container-fluid">
-
-
-      {% block content %}
-
-
-      {% if user.is_authenticated %}
-        <div class="row">
-          <div class="col-sm-3 col-md-2 sidebar">
-          <center>
-            <br/>
-            <a href="/">
-              <img src="{% static 'img/side.png' %}" border="0"/>
-            </a>
-          </center>
-          <ul class="nav nav-sidebar">
-            {% block sidebar %}
-            {% endblock sidebar %}
-          </ul>
-        </div>
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-        {% else %}
-        <div class="col-sm-12 col-md-12  main">
-        {% endif %}
+      <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    {% else %}
+    <div class="col-sm-12 col-md-12  main">
+    {% endif %}
 
     {% if messages %}
       <ul class="list-unstyled messages">
-      {% for message in messages %}
-        <li class="alert alert-{{ alert_tag }} alert-dismissible">
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">×</span>
-          </button>
-        {{ message }}</li>
-      {% endfor %}
+        {% for message in messages %}
+          <li class="alert alert-{{ message.tags }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+            {{ message }}
+          </li>
+        {% endfor %}
       </ul>
     {% endif %}
-
-              {% block main_content %}
-          {% endblock main_content %}
-        </div>
-
-        </div>
-      </div>
-      {% endblock content %}
+      {% block main_content %}
+      {% endblock main_content %}
     </div>
+    
+    </div>
+  </div>
+  {% endblock content %}
+  </div>
 
 
     {% block extra_javascript %}

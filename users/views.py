@@ -24,6 +24,7 @@ from radon.model import (
     Group,
     User
 )
+from radon.model.errors import UserConflictError
 
 
 @login_required
@@ -93,7 +94,7 @@ def delete_user(request, name):
     if request.method == "POST":
         user.delete(username=request.user.name)
         messages.add_message(
-            request, messages.INFO, "The user '{}' has been deleted".format(user.name)
+            request, messages.INFO, "User '{}' has been deleted".format(user.name)
         )
         return redirect("users:home")
 
@@ -128,6 +129,9 @@ def edit_user(request, name):
             )
             if data["password"] != user.password:
                 user.update(password=data["password"], username=request.user.name)
+            messages.add_message(
+                request, messages.INFO, "User '{}' has been updated".format(user.name)
+            )
             return redirect("users:home")
     else:
         initial_data = {
@@ -154,19 +158,27 @@ def new_user(request):
         form = UserForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            user = User.create(
-                name=data.get("username"),
-                password=data.get("password").encode("ascii", "ignore"),
-                email=data.get("email", ""),
-                administrator=data.get("administrator", False),
-                active=data.get("active", False),
-                username=request.user.name,
-            )
-            messages.add_message(
-                request,
-                messages.INFO,
-                "The user '{}' has been created".format(user.name),
-            )
+            username = data.get("username")
+            try:
+                user = User.create(
+                    name=username,
+                    password=data.get("password").encode("ascii", "ignore"),
+                    email=data.get("email", ""),
+                    administrator=data.get("administrator", False),
+                    active=data.get("active", False),
+                    username=request.user.name,
+                )
+                messages.add_message(
+                    request,
+                    messages.INFO,
+                    "User '{}' has been created".format(user.name),
+                )
+            except UserConflictError:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "User '{}' already exists".format(username),
+                )                
             return redirect("users:home")
     else:
         form = UserForm()
