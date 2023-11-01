@@ -1,13 +1,13 @@
 
-<div class="meta-container">
+<div class="meta-container my-4">
   <div class="meta-title">{{title}}</div>
-  <table class="meta-table">
+  <table class="meta-table" aria-label="List of user metadata">
     <thead>
-      <tr><th>Name</th><th>Value</th></tr>
+      <tr><th scope="col">Name</th><th scope="col">Value</th></tr>
     </thead>
     <tbody>
       {% for m in metadata %}
-      <tr><th>{{ m.0 }}</th><td>{{ m.1 }}</td></tr>
+      <tr><td class="fw-bold">{{ m.0 }}</td><td>{{ m.1 }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

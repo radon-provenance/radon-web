@@ -1,31 +1,44 @@
-
 {% if form.errors %}
-    <div class="alert alert-danger">
+  <div class="alert alert-danger">
     Please correct the problem in the form below.
-    </div>
+  </div>
 {% endif %}
 
 
-<form id="loginForm" method="POST" action="add_index_field" novalidate="novalidate" enctype="multipart/form-data">
-    {% csrf_token %}
-    
-    <div class="form-group {% if form.errors.name %}has-error{% endif %}">
-        <label for="name" class="control-label">Search Index name</label>
-        <table width="100%">
-          <tr>
-            <td width="65%" style="padding-left:10px;padding-right:20px">
-              <input type="text" class="form-control" id="fieldname" name="fieldname" title="Enter the field index name" placeholder="New field">
-            </td>
-            <td style="padding-left:20px;padding-right:10px">
-	          <select name="fieldtype" id"fieldtype"  class="form-select">
-	        	{% for o in field_options %}
-	  			  <option value="{{o.0}}">{{o.1}}</option>
-	  			{% endfor %}
-			  </select>
-			</td>
-	     </tr>
-	    </table>		
-    </div>
-    
-    <button type="submit" class="btn btn-success btn-block">Save</button>
+<form id="loginForm" 
+      method="POST" 
+      action="add_index_field" 
+      novalidate="novalidate" 
+      enctype="multipart/form-data">
+  {% csrf_token %}
+  
+  <div class="form-group {% if form.errors.name %}has-error{% endif %}">
+    <table aria-label="Adding a new search index table">
+      <tr>
+          <th><label for="name" class="form-label">Search Index name</label></th>
+          <th><label for="type" class="form-label">Search Index type</label></th>
+      </tr>
+      <tr>
+        <td class="w-70">
+          <input type="text" class="form-control" id="fieldname" name="fieldname" title="Enter the field index name" placeholder="New field">
+        </td>
+        <td>
+          <select name="fieldtype" 
+                  id="fieldtype" 
+                  class="form-select">
+            {% for o in field_options %}
+              <option value="{{o.0}}">{{o.1}}</option>
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+    </table aria-label="List of user metadata">		
+  </div>
+
+  <div class="col text-end">
+    <button type="submit" class="btn btn-success btn-block">
+      Save settings
+    </button>
+  </div>
+
 </form>

@@ -5,14 +5,23 @@
 
 {% block main_content %}
 
-<h2>New Group
-    <a class="pull-right btn btn-default" href="{% url 'groups:home' %}">
-    &laquo; Back to Group list
+
+<div class="row">
+  <div class="col">
+    <h2>Request creation for a new Group</h2>
+  </div>
+  <div class="col text-end">
+    <a class="btn btn-primary" href="{% url 'groups:home' %}">
+      &laquo; Back to Group list
     </a>
-    </h2>
+  </div>
+</div>
+
+
 <hr/>
 
 {% include "groups/group_form.html" with form=form action='new' %}
+
 
 {% endblock main_content %}
 

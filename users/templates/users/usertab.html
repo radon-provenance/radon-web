@@ -1,26 +1,49 @@
 {% load gravatar %}
+{% load bootstrap_icons %}
 
-<div class="col-md-3" >
-    <table width="100%" border="0" class="table user-tab" style="table-layout:fixed;" cellpadding="0" cellspacing="0">
-        <tr>
-            <td>
-            {% gravatar user.email 60 %}
-            </td>
-            <td valign="top" align="left">
-                <a href="{% url 'users:view' name=user.name %}">
-                {{ user.name }}
-                </a>
-                
-                {% if req_user.administrator %}
-                  <a href="{% url 'users:edit_user' name=user.name %}" >
-                  <i class="blue-icon glyphicon glyphicon-pencil"></i>
-                  </a>
-                  <a href="{% url 'users:delete_user' name=user.name %}">
-                  <i class="blue-icon glyphicon glyphicon-remove-circle"></i>
-                  </a>
-                 {% endif %}
-            </td>
-        </tr>
-    </table>
-</div>
+
+<tr>
+  <td>
+    {% gravatar user.login 40 %} 
+    <div class="col">
+      <div class="row">     
+        <a href="{% url 'users:view' login=user.login %}">{{ user.login }}</a>
+      </div>
+      <div class="row">
+        <span class="user-subhead">
+          {% if user.administrator %}admin{% else %}user{% endif %}
+        </span>
+      </div>
+    </div>
+    </td>
+    <td class="text-center">
+	   {% if user.active %}
+	     <span class="badge bg-info">Active</span>
+	   {% else %}
+	     <span class="badge bg-danger">Inactive</span>
+	   {% endif %}
+	</td>
+    <td>
+      {{ user.fullname }}
+    </td>
+	<td>
+	  <a href="mailto:{{user.email}}">{{ user.email }}</a>
+	</td>
+	<td>
+      <a href="{% url 'users:view' login=user.login %}" class="table-link">
+	    {% bs_icon 'zoom-in' color='#428bca' %}
+	  </a>
+	  
+      {% if req_user.administrator %}
+        <a href="{% url 'users:edit_user' login=user.login %}" class="table-link">
+	      {% bs_icon 'pencil' color='#428bca' %}
+	    </a>
+        <a href="{% url 'users:delete_user' login=user.login %}" class="table-link">
+  	      {% bs_icon 'trash' color='#8baaca' %}
+	    </a>
+      {% endif %}
+	    
+
+	</td>
+  </tr>
 

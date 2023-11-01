@@ -35,5 +35,6 @@ urlpatterns = [
     path("settings/", include("settings.urls", namespace="settings")),
     path("api/cdmi/", include("rest_cdmi.urls", namespace="rest_cdmi")),
     path("api/admin/", include("rest_admin.urls", namespace="rest_admin")),
+    path("msi/", include("msi.urls", namespace="msi")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

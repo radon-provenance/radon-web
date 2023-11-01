@@ -1,0 +1,59 @@
+{% extends "groups/base.html" %}
+
+{% block title %}Groups{% endblock title %}
+
+{% block main_content %}
+    <h2>Groups ({{ group_count }})</h2><hr/>
+
+	{% if user.administrator %}
+	<div class="row">
+	  <div class="text-end">
+	    <a class="btn btn-sm btn-success" href="{% url 'groups:new_group' %}">Request new group creation</a>
+	    
+	  </div>
+	</div>
+	<hr/>
+	{% endif %}
+
+    <div class="row">
+      <div class="col">
+        <div class="main-box clearfix">
+          <div class="table-responsive">
+            <table class="table user-list" aria-label="List of groups">
+              <thead>
+                <tr>
+                  <th>&nbsp;</th>
+                  <th><span>Group</span></th>
+                  <th>&nbsp;</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for g in page %}
+                    {% include "groups/grouptab.html" with req_user=user group=g %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>  
+      </div>  
+    </div>
+
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if page.has_previous %}
+                <a href="?page={{ page.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page.number }} of {{ page.paginator.num_pages }}.
+            </span>
+
+            {% if page.has_next %}
+                <a href="?page={{ page.next_page_number }}">next</a>
+            {% endif %}
+        </span>
+    </div>
+
+
+{% endblock main_content %}

@@ -4,12 +4,22 @@
 
 {% block main_content %}
 
-<h2>Edit Item - {{resource.name}}
-    <a class="pull-right btn btn-default" href="{% url 'archive:view' path=container.path %}">
-    &laquo; Back to '{{ container.name }}' collection
-    </a>
-</h2>
+
+<div class="row">
+	<div class="col">
+		<h2>Edit Item - {{resource.name}}</h2>		
+	</div>
+	<div class="col text-end">
+	  <a class="btn btn-primary" href="{% url 'archive:view' path=container.path %}">
+        &laquo; Back to '{{container.path}}' collection
+      </a>
+	</div>
+</div>
+
+
 <hr/>
+
+
 
 {% include "archive/resource/resource_form.html" with form=form container=container resource=resource groups=groups action='edit'%}
 

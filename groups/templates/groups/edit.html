@@ -1,0 +1,49 @@
+{% extends "groups/base.html" %}
+
+{% load gravatar %}
+{% load bootstrap_icons %}
+
+{% block title %}Groups - {{group.name}}{% endblock title %}
+
+{% block main_content %}
+
+<div class="row">
+  <div class="col">
+    <h2>{% gravatar group.name 40 %} {{ group.name }}</h2>
+  </div>
+  <div class="col text-end">
+    <a class="btn btn-primary" href="{% url 'groups:home' %}">
+      &laquo; Back to Group list
+    </a>
+  </div>
+</div>
+
+<hr/>
+
+
+<h3>Members</h3>
+{{group_obj.name}}
+
+<div>
+  <ul>
+    {% for member_name in members %}
+      <li>
+        <a href="{% url 'users:view' login=member_name %}">{{ member_name }}</a>
+        {% if user.administrator %}
+          <a href="{% url 'groups:rm_user' name=group.name uname=member_name %}">
+            {% bs_icon 'trash' color='#8baaca' %}
+          </a>
+        {% endif %}
+      </li>
+    {% endfor %}
+    
+    {% if user.administrator %}
+      <li>
+        <a href="{% url 'groups:add_user' name=group.name %}">Add user</a>
+      </li>
+    {% endif %}
+  </ul>
+</div>
+
+
+{% endblock main_content %}

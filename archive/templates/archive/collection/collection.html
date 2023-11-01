@@ -1,26 +1,27 @@
 
-<ol class="breadcrumb">
-  <li><a href="{% url 'archive:view' %}">Home</a></li>
+<nav aria-label="breadcrumb">
+ <ol class="breadcrumb py-1 ps-1">
+  <li class="breadcrumb-item align-self-center"><a href="{% url 'archive:view' %}">Home</a></li>
   {% for coll,full in collection_paths %}
     {% if forloop.last %}
-        <li class="active">{{coll}}</li>
+        <li class="breadcrumb-item align-self-center active">{{coll}}</li>
     {% else %}
-        <li><a href="{% url 'archive:view' path=full %}">{{coll}}</a></li>
+        <li class="breadcrumb-item align-self-center"><a href="{% url 'archive:view' path=full %}">{{coll}}</a></li>
     {% endif %}
   {% endfor %}
   
-  
-    <span class="float-right">
+    <span class="ms-auto">
     {% if collection.can_edit %}
     &nbsp;&nbsp;<a class="btn btn-xs btn-success" href="{% url 'archive:edit_collection' path=collection.path %}">Edit</a>
     {% endif %}
     {% if collection.can_delete %}
     <a class="btn btn-xs btn-danger" href="{% url 'archive:delete_collection' path=collection.path %}">Delete</a>
     {% endif %}
-    </span>
-  
-</ol>
+    </span>  
+ </ol>
+</nav>
 
+<hr/>
 
 {% include "archive/collection/metadata.html" with metadata=collection.sys_meta path=collection.path label='success' title='System Metadata' %}
 
@@ -28,11 +29,12 @@
 
 {% include "archive/collection/metadata.html" with metadata=collection.user_meta path=collection.path label='success' title='User Metadata' %}
 
-<hr/>
+<hr/>  
+  
 
 {% if collection.can_write %}
-<div class="row">
-  <div class="pull-right">
+<div class="row my-3">
+  <div class="text-end">
     <a class="btn btn-sm btn-success" href="{% url 'archive:new_collection' parent=collection.path %}">Add new collection</a>
     &nbsp;&nbsp;
     <a class="btn btn-sm btn-success" href="{% url 'archive:new_resource' parent=collection.path %}">Add new item </a>

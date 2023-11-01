@@ -15,7 +15,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import AnonymousUser
 
-
 def home(request):
     """Main view for the radon web interface"""
     if (

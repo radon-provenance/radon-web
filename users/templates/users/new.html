@@ -1,14 +1,21 @@
 {% extends "users/base.html" %}
 
-{% block title %}New User{% endblock title %}
+{% block title %}Request creation for a new User{% endblock title %}
 
 {% block main_content %}
 
-<h2>New User
-    <a class="pull-right btn btn-default" href="{% url 'users:home' %}">
-    &laquo; Back to User list
+<div class="row">
+  <div class="col">
+    <h2>Request creation for a new User</h2>
+  </div>
+  <div class="col text-end">
+    <a class="btn btn-primary" href="{% url 'users:home' %}">
+      &laquo; Back to User list
     </a>
-    </h2>
+  </div>
+</div>
+
+
 <hr/>
 
 {% include "users/user_form.html" with form=form action='new' %}

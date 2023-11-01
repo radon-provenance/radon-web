@@ -1,3 +1,4 @@
+{% load bootstrap_icons %}
 
 {% if form.errors %}
     <div class="alert alert-danger">
@@ -18,14 +19,13 @@
     {% csrf_token %}
     
     {% if action == 'new' %}    
-      <div class="form-group {% if form.errors.name %}has-error{% endif %}">
+      <div class="row py-4 form-group {% if form.errors.name %}has-error{% endif %}">
           <label for="name" class="control-label">Name</label>
           <input type="text" class="form-control" id="name" name="name" value="{{form.name.value|default:''}}"  title="Enter the collection name" placeholder="Name of collection">
       </div>
     {% endif %}
 
-    <div class="row">&nbsp;</div>
-    <div class="row">
+    <div class="row py-2">
         <div class="col-md-3">
             <strong>Read permission</strong>
             <div class="checkbox">
@@ -39,6 +39,7 @@
             </div>
         </div>
     </div>
+    
     <h4>Metadata</h4>
     <div class="form-group {% if form.errors.metadata %}has-error{% endif %}">
     {% if form.errors.metadata %}
@@ -47,16 +48,26 @@
     {{form.metadata}}
     </div>
 
-    <button type="submit" class="btn btn-success btn-block">Save</button>
+  <div class="col text-end">
+    <button type="submit" class="btn btn-success btn-block">
+      {% if action == 'edit' %}
+        Send request to edit collection
+      {% elif action == 'new' %}
+        Send request to create collection
+      {% endif %}
+    </button>
+  </div>
 </form>
+
 
 <script type="text/javascript">
 $(document).ready(function(){
+    
     $('#name').focus();
 
-    var mf_fields_count = $("#metadata_fields .form-group").size()
+    var mf_fields_count = $("#metadata_fields .form-group").length
 
-    function setminus_visibile_on_first_row() {
+    function setminus_visible_on_first_row() {
         var first = $("#metadata_fields .form-group").get(0);
         var btn = $(first).find(".btn-danger");
 
@@ -86,18 +97,20 @@ $(document).ready(function(){
         var plus  = $(container).find('.btn-success');
 
         minus.click(function(){
+			console.log("click on minus");
             $(container).remove();
             mf_fields_count -= 1;
-            setminus_visibile_on_first_row();
+            setminus_visible_on_first_row();
         });
 
         plus.click(function(){
+			console.log("click on plus");
             var newrow = clone_and_clean($(container));
             newrow.appendTo($(container).parent());
 
             mf_fields_count += 1;
             prep(newrow, mf_fields_count-1, "" );
-            setminus_visibile_on_first_row();
+            setminus_visible_on_first_row();
         });
 
         if(index == 0) {
@@ -112,7 +125,9 @@ $(document).ready(function(){
         var that = $(this);
         prep(that, index, value);
     });
+   
 });
+    
 </script>
 
 <style>
@@ -124,5 +139,5 @@ $(document).ready(function(){
 #id_write_access  { margin-top: 10px; }
 #id_edit_access   { margin-top: 10px; }
 #id_delete_access { margin-top: 10px; }
-.left-border { border-left: solid 1px #eee; }
+.left-border { border-left: solid 1px rgb(222, 221, 218); }
 </style>

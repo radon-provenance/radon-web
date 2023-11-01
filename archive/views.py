@@ -36,6 +36,7 @@ from archive.forms import (
 from radon.model import (
     Collection, 
     Group,
+    Notification,
     Resource,
     Search
 )
@@ -45,6 +46,10 @@ from radon.model.errors import (
 )
 from radon.util import merge
 
+
+ARCHIVE_VIEW = "archive:view"
+URL_ARCHIVE_NEW = "archive/new.html"
+MSG_NAME_CONFLICT = "That name is in use in the current collection"
 
 
 @login_required
@@ -58,19 +63,33 @@ def delete_collection(request, path):
         raise PermissionDenied
  
     if request.method == "POST":
+        obj = {
+            "name": coll.name,
+            "container": coll.container,
+            
+        }
+        
+        payload = {
+            "obj": obj,
+            "meta": {
+                "sender": request.user.login
+            }
+        }
+        
+        Notification.delete_request_collection(payload)
+            
+        messages.add_message(
+            request, messages.INFO, "Request for deletion of collection '{}' sent".format(coll.name)
+        )
+        
         parent_coll = Collection.find(coll.path)
         if parent_coll:
             parent_path = parent_coll.container
         else:
             # Just in case
             parent_path = ""
-        coll.delete(username=request.user.name)
-        messages.add_message(
-            request,
-            messages.INFO,
-            u"The collection '{}' has been deleted".format(coll.name),
-        )
-        return redirect("archive:view", path=parent_path)
+            
+        return redirect(ARCHIVE_VIEW, path=parent_path)
  
     return render(request, "archive/delete.html", {"collection": coll})
 
@@ -78,26 +97,38 @@ def delete_collection(request, path):
 @login_required
 def delete_resource(request, path):
     """Display the page to delete a resource"""
-    resource = Resource.find(path)
-    if not resource:
+    resc = Resource.find(path)
+    if not resc:
         raise Http404
  
-    if not resource.user_can(request.user, "delete"):
+    if not resc.user_can(request.user, "delete"):
         raise PermissionDenied
  
-    container = Collection.find(resource.container)
+    container = Collection.find(resc.container)
     if request.method == "POST":
-        resource.delete(username=request.user.name)
+        obj = {
+            "name": resc.name,
+            "container": resc.container,
+        }
+        
+        payload = {
+            "obj": obj,
+            "meta": {
+                "sender": request.user.login
+            }
+        }
+        
+        Notification.delete_request_resource(payload)
+            
         messages.add_message(
-            request,
-            messages.INFO,
-            "The resource '{}' has been deleted".format(resource.name),
+            request, messages.INFO, "Request for deletion of resource '{}' sent".format(resc.name)
         )
-        return redirect("archive:view", path=container.path)
+        
+        return redirect(ARCHIVE_VIEW, path=container.path)
  
     # Requires delete on resource
     ctx = {
-        "resource": resource,
+        "resource": resc,
         "container": container,
     }
  
@@ -146,7 +177,7 @@ def new_reference(request, parent):
                     name=name,
                     metadata=metadata,
                     url=url,
-                    username=request.user.name,
+                    sender=request.user.login,
                 )
                 resource.create_acl_list(data["read_access"], data["write_access"])
                 messages.add_message(
@@ -161,7 +192,7 @@ def new_reference(request, parent):
                     "That name is in use within the current collection",
                 )
 
-            return redirect("archive:view", path=parent_collection.path)
+            return redirect(ARCHIVE_VIEW, path=parent_collection.path)
     else:
         form = ReferenceNewForm(initial=initial)
 
@@ -216,17 +247,26 @@ def edit_collection(request, path):
                 else:
                     metadata[k] = v
  
-            try:
-                data = form.cleaned_data
-                coll.update(metadata=metadata, username=request.user.name)
-                coll.create_acl_list(data["read_access"], data["write_access"])
-                return redirect("archive:view", path=coll.path)
-            except CollectionConflictError:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "That name is in use in the current collection",
-                )
+            data = form.cleaned_data
+            payload = {
+                "obj": {
+                    "name" : coll.name,
+                    "container": coll.container,
+                    "metadata": metadata,
+                    "read_access": data["read_access"],
+                    "write_access": data["write_access"]
+                },
+                "meta": {
+                    "sender": request.user.login,
+                }
+            }
+            Notification.update_request_collection(payload)
+            messages.add_message(
+                request,
+                messages.INFO,
+                "Modification of Collection '{}' has been requested".format(path),
+            )
+            return redirect(ARCHIVE_VIEW, path=coll.path)
     else:
         md = coll.get_cdmi_user_meta()
         metadata = json.dumps(md)
@@ -253,15 +293,15 @@ def edit_collection(request, path):
 def edit_resource(request, path):
     """Display the form to edit an existing resource"""
     # Requires edit on resource
-    resource = Resource.find(path)
-    if not resource:
+    resc = Resource.find(path)
+    if not resc:
         raise Http404()
  
-    container = Collection.find(resource.container)
+    container = Collection.find(resc.container)
     if not container:
         raise Http404()
  
-    if not resource.user_can(request.user, "edit"):
+    if not resc.user_can(request.user, "edit"):
         raise PermissionDenied
  
     if request.method == "POST":
@@ -276,27 +316,37 @@ def edit_resource(request, path):
                         metadata[k] = [metadata[k], v]
                 else:
                     metadata[k] = v
-            try:
-                data = form.cleaned_data
-                resource.update(metadata=metadata, username=request.user.name)
-                resource.create_acl_list(data["read_access"], data["write_access"])
- 
-                return redirect("archive:resource_view", path=resource.path)
-            except ResourceConflictError:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "That name is in use within the current collection",
-                )
+
+            data = form.cleaned_data
+           
+            payload = {
+                "obj": {
+                    "name" : resc.name,
+                    "container": resc.container,
+                    "metadata": metadata,
+                    "read_access": data["read_access"],
+                    "write_access": data["write_access"]
+                },
+                "meta": {
+                    "sender": request.user.login,
+                }
+            }
+            Notification.update_request_resource(payload)
+            messages.add_message(
+                request,
+                messages.INFO,
+                "Modification of Resource '{}' has been requested".format(path),
+            )
+            return redirect("archive:resource_view", path=resc.path)
     else:
-        md = resource.get_cdmi_user_meta()
+        md = resc.get_cdmi_user_meta()
         metadata = json.dumps(md)
         if not md:
             metadata = '{"":""}'
  
-        read_access, write_access = resource.get_acl_list()
+        read_access, write_access = resc.get_acl_list()
         initial_data = {
-            "name": resource.name,
+            "name": resc.name,
             "metadata": metadata,
             "read_access": read_access,
             "write_access": write_access,
@@ -305,7 +355,7 @@ def edit_resource(request, path):
  
     ctx = {
         "form": form,
-        "resource": resource,
+        "resource": resc,
         "container": container,
         "groups": Group.objects.all(),
     }
@@ -316,7 +366,7 @@ def edit_resource(request, path):
 @login_required()
 def home(request):
     """Display the root of the archive"""
-    return redirect("archive:view")
+    return redirect(ARCHIVE_VIEW)
 
 
 @login_required
@@ -341,7 +391,24 @@ def new_collection(request, parent):
                 name = data["name"]
                 parent = parent_collection.path
                 metadata = {}
- 
+                path = merge(parent, name)
+                if Collection.find(path + '/'):
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        MSG_NAME_CONFLICT,
+                    )
+                    return render(request, URL_ARCHIVE_NEW,
+                                  {"form": form, "parent": parent_collection, "groups": Group.objects.all()})
+                if Resource.find(path):
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        MSG_NAME_CONFLICT,
+                    )
+                    return render(request, URL_ARCHIVE_NEW, 
+                                  {"form": form, "parent": parent_collection, "groups": Group.objects.all()})
+
                 for k, v in json.loads(data["metadata"]):
                     if k in metadata:
                         if isinstance(metadata[k], list):
@@ -350,38 +417,46 @@ def new_collection(request, parent):
                             metadata[k] = [metadata[k], v]
                     else:
                         metadata[k] = v
- 
-                collection = Collection.create(
-                    name=name,
-                    container=parent,
-                    metadata=metadata,
-                    creator=request.user.name,
-                )
-                collection.create_acl_list(data["read_access"], data["write_access"])
+                
+                payload = {
+                    "obj": {
+                        "name" : name,
+                        "container": parent,
+                        "metadata": metadata,
+                        "read_access": data["read_access"],
+                        "write_access": data["write_access"]
+                    },
+                    "meta": {
+                        "sender": request.user.login,
+                    }
+                }
+                
+                Notification.create_request_collection(payload)
+
                 
                 messages.add_message(
                     request,
                     messages.INFO,
-                    u"New collection '{}' created".format(collection.name),
+                    "Creation of Collection '{}' has been requested".format(path),
                 )
-                return redirect("archive:view", path=collection.path)
-            except CollectionConflictError:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "That name is in use in the current collection",
-                )
+                return redirect(ARCHIVE_VIEW, path=parent)
+                
+            
             except ResourceConflictError:
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    "That name is in use in the current collection",
+                    MSG_NAME_CONFLICT,
                 )
-    groups = Group.objects.all()
+        else:
+            return render(request, URL_ARCHIVE_NEW,
+                          {"form": form, 
+                           "parent": parent_collection, 
+                           "groups": Group.objects.all()})
     return render(
         request,
-        "archive/new.html",
-        {"form": form, "parent": parent_collection, "groups": groups},
+        URL_ARCHIVE_NEW,
+        {"form": form, "parent": parent_collection, "groups": Group.objects.all()},
     )
 
 
@@ -408,42 +483,68 @@ def new_resource(request, parent):
         form = ResourceNewForm(request.POST, files=request.FILES, initial=initial)
         if form.is_valid():
             data = form.cleaned_data
-            try:
-                name = data["name"]
-                metadata = {}
-
-                for k, v in json.loads(data["metadata"]):
-                    if k in metadata:
-                        if isinstance(metadata[k], list):
-                            metadata[k].append(v)
-                        else:
-                            metadata[k] = [metadata[k], v]
-                    else:
-                        metadata[k] = v
-
-                resource = Resource.create(
-                    container=parent_collection.path,
-                    name=name,
-                    metadata=metadata,
-                    mimetype=data["file"].content_type,
-                    creator=request.user.name,
-                    size=data["file"].size,
-                )
-                res = resource.put(data["file"])
-                resource.create_acl_list(data["read_access"], data["write_access"])
-                messages.add_message(
-                    request,
-                    messages.INFO,
-                    u"New resource '{}' created".format(resource.get_name()),
-                )
-            except ResourceConflictError:
+            name = data["name"]
+            parent = parent_collection.path
+            metadata = {}
+            path = merge(parent, name)
+            
+            if Collection.find(path + '/'):
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    "That name is in use within the current collection",
+                    MSG_NAME_CONFLICT,
                 )
+                return render(request, "archive/resource/new.html",
+                              {"form": form, "parent": parent_collection, "groups": Group.objects.all()})
+            if Resource.find(path):
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    MSG_NAME_CONFLICT,
+                )
+                return render(request, "archive/resource/new.html", 
+                              {"form": form, "parent": parent_collection, "groups": Group.objects.all()})
+            
+            for k, v in json.loads(data["metadata"]):
+                if k in metadata:
+                    if isinstance(metadata[k], list):
+                        metadata[k].append(v)
+                    else:
+                        metadata[k] = [metadata[k], v]
+                else:
+                    metadata[k] = v
+
+            payload = {
+                "obj": {
+                    "name" : name,
+                    "container": parent_collection.path,
+                    "metadata": metadata,
+                    "mimetype": data["file"].content_type,
+                    "size": data["file"].size,
+                    "read_access": data["read_access"],
+                    "write_access": data["write_access"]
+                },
+                "meta": {
+                    "sender": request.user.login,
+                }
+            }
+            
+            Notification.create_request_resource(payload)
+
+            
+            messages.add_message(
+                request,
+                messages.INFO,
+                "Creation of Resource '{}' has been requested".format(path),
+            )
+
+            # TODO: Put data in staging area
+            # res = resource.put(data["file"])
  
-            return redirect("archive:view", path=parent_collection.path)
+            return redirect(ARCHIVE_VIEW, path=parent_collection.path)
+        else:
+            ctx = {"form": form, "container": parent_collection, "groups": Group.objects.all()}
+            return render(request, "archive/resource/new.html", ctx)
     else:
         form = ResourceNewForm(initial=initial)
  
@@ -477,7 +578,7 @@ def search(request):
     
     ctx = {"q": query}
     
-    if not ":" in query:
+    if ":" not in query:
         solr_query = """solr_query='path:"{}"'""".format(query)
     else:
         solr_query = """solr_query='{}'""".format(query)
@@ -520,19 +621,24 @@ def view_collection(request, path='/'):
     children_c.sort(key=lambda x: x.lower())
     children_r.sort(key=lambda x: x.lower())
     
-        
+    # With pending requests it may be possible that some objects are currently being deleted
+    ls_coll = []
+    for c in children_c:
+        child_c = Collection.find(merge(path, c))
+        if child_c:
+            ls_coll.append(child_c.to_dict(request.user))
+    ls_resc = []
+    for c in children_r:
+        child_r = Resource.find(merge(path, c))
+        if child_r:
+            ls_resc.append(child_r.simple_dict(request.user))
     ctx = {
         "collection": collection.to_dict(request.user),
-        "children_c": [
-            Collection.find(merge(path, c)).to_dict(request.user) for c in children_c
-        ],
-        "children_r": [
-            Resource.find(merge(path, c)).simple_dict(request.user) for c in children_r
-        ],
+        "children_c": ls_coll,
+        "children_r": ls_resc,
         "collection_paths": paths,
-        "empty": len(children_c) + len(children_r) == 0,
+        "empty": len(ls_coll) + len(ls_resc) == 0,
     }
-    
     return render(request, "archive/index.html", ctx)
 
 
@@ -548,7 +654,7 @@ def view_resource(request, path):
  
     container = Collection.find(resource.container)
     if not container:
-        # TODO: the container has to be there. If not it may be a network
+        # The container has to be there. If not it may be a network
         # issue with Cassandra so we try again before raising an error to the
         # user
         container = Collection.find(resource.container)

@@ -1,15 +1,21 @@
 {% extends "users/base.html" %}
 
 
-{% block title %}Edit User - {{user.name}}{% endblock title %}
+{% block title %}Edit User - {{user.login}}{% endblock title %}
 
 {% block main_content %}
 
-<h2>Edit User - {{user.name}}
-    <a class="pull-right btn btn-default" href="{% url 'users:home' %}">
-    &laquo; Back to user management
-    </a>
-</h2>
+<div class="row">
+	<div class="col">
+		<h2>Edit User - {{user.login}}</h2>		
+	</div>
+	<div class="col text-end">
+	  <a class="btn btn-primary" href="{% url 'users:home' %}">
+        &laquo; Back to User list
+      </a>
+	</div>
+</div>
+
 <hr/>
 
 {% include "users/user_form.html" with form=form user=user action='edit'%}

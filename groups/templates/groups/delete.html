@@ -1,24 +1,26 @@
 {% extends "groups/base.html" %}
 
 
-{% block title %}Delete Group - {{group.name}}{% endblock title %}
+{% block title %}Request deletion of Group - {{group.name}}{% endblock title %}
 
 {% block main_content %}
 
-    <h2>Delete Group - {{group.name}}</h2>
+<h2>Request deletion of Group - {{group.name}}</h2>
 
-    <br/><br/>
+<br/><br/>
 
-    <div style="text-align:center; margin-top: 20px;">
-        <div style='font-size: 1.5em'>
-        Are you sure you wish to delete group {{group.name}}?
-        </div>
+<div class="mb-3 text-center">
+  <div class="lead">
+    Are you sure you wish to request the deletion of group {{group.name}}?
+  </div>
+</div>
 
-        <form action="{% url 'groups:delete_group' name=group.name %}" method="POST">
-            {% csrf_token %}
-            <button class="btn btn-lg btn-danger">Delete this group</button>
-            <a href="{% url 'groups:home' %}" class="btn btn-lg btn-success">Cancel</a>
-        </form>
+<div class="mb-3 text-center">
+  <form action="{% url 'groups:delete_group' name=group.name %}" method="POST">
+    {% csrf_token %}
+    <button class="btn btn-sm btn-danger">Request for deletion</button>
+    <a href="{% url 'groups:home' %}" class="btn btn-sm btn-success">Cancel</a>
+  </form>
+</div>
 
-    </div>
 {% endblock main_content %}

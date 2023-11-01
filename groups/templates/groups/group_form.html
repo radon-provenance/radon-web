@@ -5,21 +5,40 @@
     </div>
 {% endif %}
 
+
 {% if action == 'edit' %}
     {% url 'groups:edit_group' name=group.name as post_url %}
 {% else %}
     {% url 'groups:new_group' as post_url %}
 {% endif %}
 
-<form id="loginForm" method="POST" action="{{post_url}}" novalidate="novalidate" enctype="multipart/form-data">
-    {% csrf_token %}
-    
-<!--     {{ form }} -->
-    
-    <div class="form-group {% if form.errors.name %}has-error{% endif %}">
-        <label for="name" class="control-label">Group name</label>
-        <input type="text" class="form-control" id="name" name="name" value="{{form.name.value|default:''}}"  title="Enter the group name" placeholder="Name of group">
-    </div>
-    
-    <button type="submit" class="btn btn-success btn-block">Save</button>
+
+<form id="loginForm"
+      method="POST" 
+      action="{{post_url}}" 
+      novalidate="novalidate" 
+      enctype="multipart/form-data">
+  {% csrf_token %}
+  
+  <div class="mb-3 {% if form.errors.name %}has-error{% endif %}">
+    <label for="name" class="form-label">Group name</label>
+    <input type="text" 
+           class="form-control"
+           id="name" 
+           name="name" 
+           value="{{form.name.value|default:''}}" 
+           title="Enter the group name" 
+           placeholder="Name of group" />
+  </div>
+  
+  <div class="col text-end">
+    <button type="submit" class="btn btn-success btn-block">
+      {% if action == 'edit' %}
+        Send request to edit group
+      {% elif action == 'new' %}
+        Send request to create group
+      {% endif %}
+    </button>
+  </div>
+
 </form>

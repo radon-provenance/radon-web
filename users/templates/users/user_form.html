@@ -6,56 +6,101 @@
 {% endif %}
 
 {% if action == 'edit' %}
-    {% url 'users:edit_user' name=user.name as post_url %}
+    {% url 'users:edit_user' login=user.login as post_url %}
 {% else %}
     {% url 'users:new_user' as post_url %}
 {% endif %}
 
-<form id="loginForm" method="POST" action="{{post_url}}" novalidate="novalidate" enctype="multipart/form-data">
-    {% csrf_token %}
-    
-<!--     {{ form }} -->
 
-	{% if action == 'edit' %}
-	    <div class="form-group {% if form.errors.name %}has-error{% endif %}">
-	        <label for="username" class="control-label">Username</label>
-	        <input type="text" class="form-control" id="username" name="username" value="{{form.username.value|default:''}}"  title="Enter the username" placeholder="User name" readonly>
-	    </div>
-	{% else %}
-	    <div class="form-group {% if form.errors.name %}has-error{% endif %}">
-	        <label for="username" class="control-label">Username</label>
-	        <input type="text" class="form-control" id="username" name="username" value="{{form.username.value|default:''}}"  title="Enter the username" placeholder="User name">
-	    </div>
-	{% endif %}
-    
-    <div class="form-group {% if form.errors.name %}has-error{% endif %}">
-        <label for="email" class="control-label">Email</label>
-        <input type="text" class="form-control" id="email" name="email" value="{{form.email.value|default:''}}"  title="Enter the email" placeholder="Email of user">
-    </div>
-       
-    <div class="form-group {% if form.errors.name %}has-error{% endif %}">
-        <label for="active" class="control-label">Active</label>
-        {% if action == 'edit' %}
-            <input {% if user.active %}checked="checked"{% endif %} type="checkbox" name="active" id="active" />
-        {% else %}
-            <input checked="checked" type="checkbox" name="active" id="active" />
-        {% endif %}
-        
-    </div>
-        
-     <div class="form-group {% if form.errors.name %}has-error{% endif %}">
-        <label for="administrator" class="control-label">Administrator</label>
-        {% if action == 'edit' %}
-            <input {% if user.administrator %}checked="checked"{% endif %} type="checkbox" name="administrator" id="administrator" />
-        {% else %}
-            <input type="checkbox" name="administrator" id="administrator" />
-        {% endif %}
-     </div>
-     
-     <div class="form-group {% if form.errors.name %}has-error{% endif %}">
-        <label for="password" class="control-label">Password</label>
-        <input type="password" size="10" class="form-control" id="password" name="password" value="{{form.password.value|default:''}}"  title="Enter the password" placeholder="Password of user">
-    </div>
+<form id="loginForm" 
+      method="POST" 
+      action="{{post_url}}" 
+      novalidate="novalidate" 
+      enctype="multipart/form-data">
+  {% csrf_token %}
+  
 
-    <button type="submit" class="btn btn-success btn-block">Save</button>
+
+  <div class="mb-3 {% if form.errors.login %}has-error{% endif %}">
+    <label for="login" class="form-label">Login</label>
+    <input type="text" 
+           class="form-control" 
+           id="login" 
+           name="login" 
+           value="{{form.login.value|default:''}}" 
+           title="Enter the login" 
+           placeholder="login" 
+           {% if action == 'edit' %}readonly{% endif %} /> <!-- readonly for edit, we can't change login -->
+  </div>
+
+  <div class="mb-3 {% if form.errors.password %}has-error{% endif %}">
+    <label for="password" class="form-label">Password</label>
+    <input type="password" 
+           size="15" 
+           class="form-control" 
+           id="password" 
+           name="password" 
+           value="{{form.password.value|default:''}}" 
+           title="Enter the password" 
+           placeholder="Password of user" />
+  </div>
+
+  <div class="mb-3 {% if form.errors.fullname %}has-error{% endif %}">
+    <label for="fullname" class="form-label">Full name</label>
+    <input type="text" 
+           class="form-control" 
+           id="fullname" 
+           name="fullname" 
+           value="{{form.fullname.value|default:''}}"  
+           title="Enter the Full Name of the user" 
+           placeholder="Full Name" />
+  </div>
+
+  <div class="mb-3 {% if form.errors.email %}has-error{% endif %}">
+    <label for="email" class="form-label">Email</label>
+    <input type="email" 
+           class="form-control" 
+           id="email" 
+           name="email" 
+           value="{{form.email.value|default:''}}"  
+           title="Enter the email" 
+           placeholder="Email of user" />
+  </div>
+
+  <div class="mb-3 {% if form.errors.active %}has-error{% endif %}">
+    <label for="active" class="form-check-label">Active</label>
+    <input type="checkbox" 
+           class="form-check-input"
+           {% if user.active %}checked="checked"{% endif %} 
+           name="active" 
+           id="active" />
+  </div>
+  
+  <div class="mb-3 {% if form.errors.administrator %}has-error{% endif %}">
+    <label for="administrator" class="form-check-label">Administrator</label>
+    <input type="checkbox"
+           class="form-check-input"
+           {% if user.administrator %}checked="checked"{% endif %} 
+           name="administrator"
+           id="administrator" />
+  </div>
+  
+  <div class="mb-3 {% if form.errors.ldap %}has-error{% endif %}">
+    <label for="ldap" class="form-check-label">Ldap User</label>
+    <input type="checkbox"
+           class="form-check-input"
+           {% if user.ldap %}checked="checked"{% endif %} 
+           name="ldap"
+           id="ldap" />
+  </div>
+
+  <div class="col text-end">
+    <button type="submit" class="btn btn-success btn-block">
+      {% if action == 'edit' %}
+        Send request to edit user
+      {% elif action == 'new' %}
+        Send request to create user
+      {% endif %}
+    </button>
+  </div>
 </form>

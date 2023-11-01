@@ -28,4 +28,4 @@ class RadonAppConfig(AppConfig):
         initialise()
 
         # Try to get the root. It will be created if it doesn't exist
-        coll = Collection.get_root()
+        _ = Collection.get_root()

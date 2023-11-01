@@ -4,30 +4,40 @@
 
 {% block main_content %}
 
-<h2> &nbsp;
-  <div class="div-search" style="width:400px;">
-    {% include "snippets/search_form.html" with q=q size="small"%}
-  </div>
-  </h2>
+
+<div class="div-search">
+  {% include "snippets/search_form.html" with q=q size="small"%}
+</div>
+  
 <hr/>
 
-<h2>&nbsp;<a class="btn btn-success pull-right" href="{% url 'archive:download' path=resource.path %}">Download file</a>
+<div class="text-end">
+	<a class="btn btn-success pull-right" href="{% url 'archive:download' path=resource.path %}">
+		Download file
+	</a>
+</div>
 
-</h2>
 <hr/>
 
 
-<ol class="breadcrumb">
-  <li><a href="{% url 'archive:view' %}">Home</a></li>
+<nav aria-label="breadcrumb">
+ <ol class="breadcrumb py-1 ps-1">
+  <li class="breadcrumb-item align-self-center"><a href="{% url 'archive:view' %}">Home</a></li>
   {% for coll,full in collection_paths %}
     {% if forloop.last %}
-        <li class="active"><a href="{% url 'archive:view' path=full %}">{{coll}}</a></li>
+        <li class="breadcrumb-item align-self-center active">
+			<a href="{% url 'archive:view' path=full %}">{{coll}}</a>
+	    </li>
     {% else %}
-        <li><a href="{% url 'archive:view' path=full %}">{{coll}}</a></li>
+        <li class="breadcrumb-item align-self-center">
+	      <a href="{% url 'archive:view' path=full %}">{{coll}}</a>
+	    </li>
     {% endif %}
   {% endfor %}
-   <li>{{resource.name}}</li>
-</ol>
+  
+   <li class="breadcrumb-item align-self-center">{{resource.name}}</li>
+ </ol>
+</nav>
 
 
 {# Permission check for action bar .... #}
@@ -48,33 +58,33 @@
 
     <div class="meta-container">
       <div class="meta-title">System Metadata</div>
-      <table class="meta-table">
+      <table class="meta-table" aria-label="List of system metadata">
         <thead>
-          <tr><th>Name</th><th>Value</th></tr>
+          <tr><th scope="col">Name</th><th scope="col">Value</th scope="col"></tr>
         </thead>
         
         
         <tbody>
           {% for m in resource.sys_meta %}
-            <tr><th>{{ m.0 }}</th><td>{{ m.1 }}</td></tr>
+            <tr><td class="fw-bold">{{ m.0 }}</td><td>{{ m.1 }}</td></tr>
           {% endfor %}
           
         <tr>
-            <th>CDMI URL:</th>
+            <td class="fw-bold">CDMI URL:</td>
             <td><a href='{% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}/api/cdmi{{resource.path}}'>
               {% if request.is_secure %}https://{% else %}http://{% endif %}{{ request.get_host }}/api/cdmi{{resource.path}}
                </a></td>
         </tr>
         {% if resource.is_reference %}
             <tr>
-                <th>Reference:</th>
+                <td class="fw-bold">Reference:</td>
                 <td><a href="{{resource.url}}">{{resource.url}}</a></td>
             </tr>
         {% endif %}
         
        {% if request.user.administrator and not resource.is_reference %}
         <tr>
-            <th>Internal URL</th>
+            <td class="fw-bold">Internal URL</td>
             <td>{{resource.url}}</td>
         </tr>
         {% endif %}
@@ -86,13 +96,13 @@
     
     <div class="meta-container">
       <div class="meta-title">User Metadata</div>
-      <table class="meta-table">
+      <table class="meta-table" aria-label="List of user metadata">
         <thead>
-          <tr><th>Name</th><th>Value</th></tr>
+          <tr><th scope="col">Name</th><th scope="col">Value</th></tr>
         </thead>
         <tbody>
           {% for m in resource.user_meta %}
-            <tr><th>{{ m.0 }}</th><td>{{ m.1 }}</td></tr>
+            <tr><td class="fw-bold">{{ m.0 }}</td><td>{{ m.1 }}</td></tr>
           {% endfor %}
         </tbody>
       </table>

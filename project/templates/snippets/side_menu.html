@@ -1,18 +1,18 @@
-<ul class="nav nav-sidebar">
-  <li {% if active == 'archive' %}class="active"{% endif %}>
-    <a href="{% url 'archive:home' %}">Archive</a>
+<ul class="nav flex-column">
+  <li class="nav-item{% if active == 'archive' %} active{% endif %}">
+    <a class="nav-link" href="{% url 'archive:home' %}">Archive</a>
   </li>
-  <li {% if active == 'users' %}class="active"{% endif %}>
-	<a href="{% url 'users:home' %}">Users</a>
+  <li class="nav-item{% if active == 'users' %} active{% endif %}">
+	<a class="nav-link" href="{% url 'users:home' %}">Users</a>
   </li>
-  <li {% if active == 'groups' %}class="active"{% endif %}>
-    <a href="{% url 'groups:home' %}">Groups</a>
+  <li class="nav-item{% if active == 'groups' %} active{% endif %}">
+    <a class="nav-link" href="{% url 'groups:home' %}">Groups</a>
   </li>
-  <li {% if active == 'activity' %}class="active"{% endif %}>
-    <a href="{% url 'activity:home' %}">Activity</a>
+  <li class="nav-item{% if active == 'activity' %} active{% endif %}">
+    <a class="nav-link" href="{% url 'activity:home' %}">Activity</a>
   </li>
-  <li {% if active == 'settings' %}class="active"{% endif %}>
-    <a href="{% url 'settings:home' %}">Settings</a>
+  <li class="nav-item{% if active == 'settings' %} active{% endif %}">
+    <a class="nav-link" href="{% url 'settings:home' %}">Settings</a>
   </li>
   <li><div class="height-30"></div></li>
 

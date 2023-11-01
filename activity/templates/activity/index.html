@@ -2,17 +2,32 @@
 
 {% block title %}Activity{% endblock title %}
 
-
 {% block main_content %}
+
 
 <h2>Recent Activity</h2>
 
-{% for a in activities %}
-    <div class="activity-item">
-    {{a.html|safe}}
-    </div>
-{% endfor %}
 
+
+<table class="table table-light table-striped table-bordered table-hover">
+  <caption>Last activities registered on the server</caption>
+  <thead class="table-dark">
+    <tr>
+      <th scope="col">Date</th>
+      <th scope="col">Action</th>
+      <th scope="col">Action Type</th>
+      <th scope="col">Object</th>
+      <th scope="col">User</th>
+      <th scope="col">Message</th>
+    </tr>
+  </thead>
+  <tbody>
+{% for a in activities %}
+  {{a.html|safe}}
+{% endfor %}
+  </tbody>
+</table>
 
 
 {% endblock main_content %}
+

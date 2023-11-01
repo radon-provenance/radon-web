@@ -16,13 +16,13 @@ from django.urls import path
 from . import views
 
 app_name = "users"
- 
+
 urlpatterns = [
     path("", views.home, name="home"),
     path("login", views.userlogin, name="auth_login"),
     path("logout", views.userlogout, name="auth_logout"),
-    path("new/user", views.new_user, name="new_user"),
-    path("delete/user/<str:name>", views.delete_user, name="delete_user"),
-    path("edit/user/(<str:name>)", views.edit_user, name="edit_user"),
-    path("<str:name>", views.user_view, name="view"),
+    path("new", views.new_user, name="new_user"),
+    path("delete/<str:login>", views.delete_user, name="delete_user"),
+    path("edit/<str:login>", views.edit_user, name="edit_user"),
+    path("<str:login>", views.view, name="view"),
 ]

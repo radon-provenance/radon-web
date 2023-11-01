@@ -18,8 +18,10 @@ from django import forms
 class UserForm(forms.Form):
     """Fields for the user form"""
  
-    username = forms.CharField(label="Username", max_length=100, required=True)
-    email = forms.CharField(label="Email", max_length=100, required=True)
+    login = forms.CharField(label="login", max_length=100, required=True)
+    password = forms.CharField(widget=forms.PasswordInput(), required=True)
+    fullname = forms.CharField(label="Fullname", max_length=100, required=False)
+    email = forms.CharField(label="Email", max_length=100, required=False)
     active = forms.BooleanField(widget=forms.CheckboxInput, required=False)
     administrator = forms.BooleanField(widget=forms.CheckboxInput, required=False)
-    password = forms.CharField(widget=forms.PasswordInput(), required=True)
+    ldap = forms.BooleanField(widget=forms.CheckboxInput, required=False)

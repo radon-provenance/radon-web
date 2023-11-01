@@ -128,3 +128,5 @@ dmypy.json
 
 # SonarQube
 .scannerwork/
+sonar-project.properties
+sonar_scan.sh

@@ -1,15 +1,22 @@
 {% extends "settings/base.html" %}
 
-
 {% block title %}New Search Index{% endblock title %}
 
 {% block main_content %}
 
-<h2>New Search Index
-    <a class="pull-right btn btn-default" href="{% url 'settings:home' %}">
-    &laquo; Back to Settings
+
+
+<div class="row">
+  <div class="col">
+    <h2>New Search Index</h2>
+  </div>
+  <div class="col text-end">
+    <a class="btn btn-primary" href="{% url 'settings:home' %}">
+      &laquo; Back to Settings
     </a>
-    </h2>
+  </div>
+</div>
+
 <hr/>
 
 {% include "settings/settings_form.html" with form=form action='new' %}

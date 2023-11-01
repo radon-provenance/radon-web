@@ -1,14 +1,20 @@
 {% extends "groups/base.html" %}
 
-{% block title %}Add user to group{% endblock title %}
+{% block title %}Add user(s) to group{% endblock title %}
 
 {% block main_content %}
 
-<h2>Add user(s)
-    <a class="pull-right btn btn-default" href="{% url 'groups:view' name=group.name %}">
-    &laquo; Back to Group
+<div class="row">
+  <div class="col">
+    <h2>Group {{ group.name}}</h2><h4>Add/Remove user(s)</h4>
+  </div>
+  <div class="col text-end">
+    <a class="btn btn-primary" href="{% url 'groups:home' %}">
+      &laquo; Back to Group list
     </a>
-    </h2>
+  </div>
+</div>
+
 <hr/>
 
 {% include "groups/add_form.html" with form=form action='add' group=group users=users%}

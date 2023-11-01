@@ -57,10 +57,12 @@ from radon.model import (
 )
 from radon import cfg
 from radon.util import (
+    mk_cassandra_url,
     path_exists,
     split
 ) 
 from radon.model.errors import ResourceConflictError
+from project.custom import CassandraAuthentication
 
 
 CHUNK_SIZE = 1048576
@@ -136,13 +138,20 @@ FIELDS_CONTAINER = OrderedDict(
 )
 
 
+MSG_UNSUPPORTED_VERSION = "Unsupported CDMI version"
+
+APP_CDMI_CAPABILITY = "application/cdmi-capability"
+APP_CDMI_CONTAINER = "application/cdmi-container"
+APP_CDMI_OBJECT = "application/cdmi-object"
+
+
 def check_cdmi_version(request):
     """Check the HTTP request header to see what version the client is
      supporting. Return the highest version supported by both the client and
      the server,
      '' if no match is found or no version provided by the client
      'HTTP' if the cdmi header is not present"""
-    if not "HTTP_X_CDMI_SPECIFICATION_VERSION" in request.META:
+    if "HTTP_X_CDMI_SPECIFICATION_VERSION" not in request.META:
         return "HTTP"
     spec_version_raw = request.META.get("HTTP_X_CDMI_SPECIFICATION_VERSION", "")
     versions_list = [el.strip() for el in spec_version_raw.split(",")]
@@ -207,7 +216,7 @@ def capabilities(request, path):
     body = OrderedDict()
     if path in ["", "/"]:
         body["capabilities"] = SYSTEM_CAPABILITIES._asdict()
-        body["objectType"] = "application/cdmi-capability"
+        body["objectType"] = APP_CDMI_CAPABILITY
         body["objectID"] = "00007E7F00104BE66AB53A9572F9F51E"
         body["objectName"] = "cdmi_capabilities/"
         body["parentURI"] = "/"
@@ -217,7 +226,7 @@ def capabilities(request, path):
     elif not path.endswith("/"):
         data_dict = CDMIDataAccessObject().data_object_capabilities._asdict()
         body["capabilities"] = data_dict
-        body["objectType"] = "application/cdmi-capability"
+        body["objectType"] = APP_CDMI_CAPABILITY
         body["objectID"] = "00007E7F00104BE66AB53A9572F9F51F"
         body["objectName"] = "data_object/"
         body["parentURI"] = "/"
@@ -227,7 +236,7 @@ def capabilities(request, path):
     else:
         data_dict = CDMIDataAccessObject().container_capabilities._asdict()
         body["capabilities"] = data_dict
-        body["objectType"] = "application/cdmi-capability"
+        body["objectType"] = APP_CDMI_CAPABILITY
         body["objectID"] = "00007E7F00104BE66AB53A9572F9F51A"
         body["objectName"] = "container/"
         body["parentURI"] = "/"
@@ -266,46 +275,8 @@ class OctetStreamRenderer(BaseRenderer):
     format = "bin"
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        # return data.encode(self.charset)
         return data
 
-
-class CassandraAuthentication(BasicAuthentication):
-    """HTTP Basic authentication against username/password, stored in
-    Cassandra"""
-
-    www_authenticate_realm = "Radon"
-
-    def authenticate_credentials(self, userid, password, request=None):
-        """
-        Authenticate the username and password against username and password.
-        """
-        user = User.find(userid)
-        if user is None or not user.is_active():
-            raise exceptions.AuthenticationFailed(_("User inactive or deleted."))
-        if not user.authenticate(password) and not ldap_authenticate(userid, password):
-            raise exceptions.AuthenticationFailed(_("Invalid username/password."))
-        return (user, None)
-
-
-def ldap_authenticate(username, password):
-    """Try to authenticate to a LDAP server (stored in settings)"""
-    if cfg.auth_ldap_server_uri is None:
-        return False
-
-    if cfg.auth_ldap_user_dn_template is None:
-        return False
-
-    try:
-        connection = ldap.initialize(cfg.auth_ldap_server_uri)
-        connection.protocol_version = ldap.VERSION3
-        user_dn = cfg.auth_ldap_user_dn_template % {"user": username}
-        connection.simple_bind_s(user_dn, password)
-        return True
-    except ldap.INVALID_CREDENTIALS:
-        return False
-    except ldap.SERVER_DOWN:
-        return False
 
 
 @api_view(["GET", "PUT"])
@@ -343,7 +314,6 @@ class CDMIView(APIView):
         super(CDMIView, self).__init__(**kwargs)
         cfg = settings.CDMI_SERVER
         self.api_root = cfg["endpoint"]
-        # self.api_root = reverse_lazy('api_cdmi', args=path, request=request)
         self.logger = logging.getLogger("radon")
         self.http_mode = True
         self.cdmi_version = "HTTP"
@@ -364,7 +334,7 @@ class CDMIView(APIView):
         # Check HTTP Headers for CDMI version or HTTP mode
         self.cdmi_version = self.check_cdmi_version()
         if not self.cdmi_version:
-            self.logger.warning("Unsupported CDMI version")
+            self.logger.warning(MSG_UNSUPPORTED_VERSION)
             return Response(status=HTTP_400_BAD_REQUEST)
         self.http_mode = self.cdmi_version == "HTTP"
 
@@ -385,7 +355,7 @@ class CDMIView(APIView):
         # Check HTTP Headers for CDMI version or HTTP mode
         self.cdmi_version = self.check_cdmi_version()
         if not self.cdmi_version:
-            self.logger.warning("Unsupported CDMI version")
+            self.logger.warning(MSG_UNSUPPORTED_VERSION)
             return Response(status=HTTP_400_BAD_REQUEST)
         self.http_mode = self.cdmi_version == "HTTP"
 
@@ -406,7 +376,7 @@ class CDMIView(APIView):
         # Check HTTP Headers for CDMI version or HTTP mode
         self.cdmi_version = self.check_cdmi_version()
         if not self.cdmi_version:
-            self.logger.warning("Unsupported CDMI version")
+            self.logger.warning(MSG_UNSUPPORTED_VERSION)
             return Response(status=HTTP_400_BAD_REQUEST)
         self.http_mode = self.cdmi_version == "HTTP"
         # Add a '/' at the beginning if not present
@@ -492,7 +462,7 @@ class CDMIView(APIView):
         path = cdmi_container.get_path()
         http_accepts = self.request.META.get("HTTP_ACCEPT", "").split(",")
         http_accepts = {el.split(";")[0] for el in http_accepts}
-        if not http_accepts.intersection(set(["application/cdmi-container", "*/*"])):
+        if not http_accepts.intersection(set([APP_CDMI_CONTAINER, "*/*"])):
             self.logger.error(
                 u"Accept header problem for container '{}' ('{}')".format(
                     path, http_accepts
@@ -538,9 +508,9 @@ class CDMIView(APIView):
                 return Response(status=HTTP_406_NOT_ACCEPTABLE)
 
         self.logger.info(
-            u"{} reads container at '{}' using CDMI".format(self.user.name, path)
+            u"{} reads container at '{}' using CDMI".format(self.user.login, path)
         )
-        response = JsonResponse(body, content_type="application/cdmi-container")
+        response = JsonResponse(body, content_type=APP_CDMI_CONTAINER)
         response["X-CDMI-Specification-Version"] = "1.1"
         return response
 
@@ -578,7 +548,7 @@ class CDMIView(APIView):
         path = cdmi_resource.get_path()
         http_accepts = self.request.META.get("HTTP_ACCEPT", "").split(",")
         http_accepts = {el.split(";")[0] for el in http_accepts}
-        if not http_accepts.intersection(set(["application/cdmi-object", "*/*"])):
+        if not http_accepts.intersection(set([APP_CDMI_OBJECT, "*/*"])):
             self.logger.error(
                 u"Accept header problem for resource '{}' ('{}')".format(
                     path, http_accepts
@@ -597,7 +567,6 @@ class CDMIView(APIView):
                 del field_dict["valuerange"]
             status = HTTP_200_OK
 
-        # TODO: multipart/mixed, byte ranges for value, filter metadata
         if self.request.GET:
             fields = {}
             for field, value in self.request.GET.items():
@@ -636,10 +605,10 @@ class CDMIView(APIView):
                 body[field] = get_field()
 
         self.logger.info(
-            u"{} reads resource at '{}' using CDMI".format(self.user.name, path)
+            u"{} reads resource at '{}' using CDMI".format(self.user.login, path)
         )
         response = JsonResponse(
-            body, content_type="application/cdmi-object", status=status
+            body, content_type=APP_CDMI_OBJECT, status=status
         )
         response["X-CDMI-Specification-Version"] = "1.1"
         return response
@@ -662,7 +631,7 @@ class CDMIView(APIView):
             else:
                 self.logger.info(
                     u"{} reads resource at '{}' using HTTP, with range '{}'".format(
-                        self.user.name, path, http_range
+                        self.user.login, path, http_range
                     )
                 )
                 # Totally inefficient but that's probably not something
@@ -680,7 +649,7 @@ class CDMIView(APIView):
             )
         else:
             self.logger.info(
-                u"{} reads resource at '{}' using HTTP".format(self.user.name, path)
+                u"{} reads resource at '{}' using HTTP".format(self.user.login, path)
             )
             status = HTTP_200_OK
             return StreamingHttpResponse(
@@ -833,14 +802,14 @@ class CDMIView(APIView):
             seq_num += 1
         if uuid is None:  # Content is null
             uuid = self.create_empty_data_object()
-        url = "cassandra://{}".format(uuid)
+        url = mk_cassandra_url(uuid)
         resource = Resource.create(
             name=name, container=parent, url=url, mimetype=mimetype, size=len(content)
         )
         return resource
 
     def create_reference(self, parent, name, url,
-                         mimetype="application/cdmi-object"):
+                         mimetype=APP_CDMI_OBJECT):
         """Create a new reference"""
         resource = Resource.create(
             name=name, container=parent, url=url, mimetype=mimetype
@@ -853,7 +822,7 @@ class CDMIView(APIView):
         content_type = tmp[0]
         if not content_type:
             mimetype = "application/octet-stream"
-        elif content_type == "application/cdmi-object":
+        elif content_type == APP_CDMI_OBJECT:
             # Should send the X-CDMI-Specification-Version to use this
             # mimetype
             return Response(status=HTTP_400_BAD_REQUEST)
@@ -863,7 +832,6 @@ class CDMIView(APIView):
         if resource:
             # Update value
             # Delete old blobs
-            create_ts = resource.get_create_ts()
             if not resource.is_reference():
                 resource.delete_data_objects()
             
@@ -875,7 +843,7 @@ class CDMIView(APIView):
                 else:
                     self.append_data_object(uuid, seq_num, chk)
                 seq_num += 1
-            url = "cassandra://{}".format(uuid)
+            url = mk_cassandra_url(uuid)
 
             resource.update(url=url, mimetype=mimetype)
             return Response(status=HTTP_204_NO_CONTENT)
@@ -894,20 +862,17 @@ class CDMIView(APIView):
             # This is mandatory - either application/cdmi-object or
             # mimetype of data object to create
             return Response(status=HTTP_400_BAD_REQUEST)
-        if content_type == "application/cdmi-container":
+        if content_type == APP_CDMI_CONTAINER:
             # CDMI request performed to create a new container resource
             # but omitting the trailing slash at the end of the URI
             # CDMI standards mandates 400 Bad Request response
             return Response(status=HTTP_400_BAD_REQUEST)
         # Sent as CDMI JSON
-        body = self.request.body
-        request_body = json.loads(body)
         try:
             body = self.request.body
             request_body = json.loads(body)
         except (json.JSONDecodeError, TypeError):
             return Response(status=HTTP_400_BAD_REQUEST)
-
         value_type = [
             key for key in request_body if key in POSSIBLE_DATA_OBJECT_LOCATIONS
         ]
@@ -918,7 +883,7 @@ class CDMIView(APIView):
             # Only one of these fields shall be specified in any given
             # operation.
             return Response(status=HTTP_400_BAD_REQUEST)
-        elif value_type and not (value_type[0] in ["value", "reference"]):
+        elif value_type and (value_type[0] not in ["value", "reference"]):
             # Only 'value' and 'reference' are supported at the present time
             # TODO: Check the authorized fields with reference
             return Response(status=HTTP_400_BAD_REQUEST)
@@ -952,7 +917,7 @@ class CDMIView(APIView):
                         seq_num += 1
                     if uuid is None:  # Content is null
                         uuid = self.create_empty_data_object()
-                    url = "cassandra://{}".format(uuid)
+                    url = mk_cassandra_url(uuid)
                     resource.update(url=url, mimetype=mimetype)
                 else:
                     # Create resource
@@ -1002,7 +967,7 @@ class CDMIView(APIView):
                 return Response(status=HTTP_406_NOT_ACCEPTABLE)
 
         return JsonResponse(
-            body, content_type="application/cdmi-object", status=HTTP_201_CREATED
+            body, content_type=APP_CDMI_OBJECT, status=HTTP_201_CREATED
         )
 
     def put_data_object(self, path):

@@ -25,9 +25,16 @@ from groups.forms import (
 )
 from radon.model import (
     Group,
+    Notification,
     User
 )
 from radon.model.errors import GroupConflictError
+from radon.util import payload_check
+from pip._vendor.pygments.unistring import Lm
+
+
+GROUP_HOME = "groups:home"
+URL_GROUP_NEW = "groups/new.html"
 
 
 @login_required
@@ -38,21 +45,30 @@ def add_user(request, name):
         raise Http404
     if not request.user.administrator:
         raise PermissionDenied
-    users = [(u.name, u.name) for u in User.objects.all() if not group.name in u.groups]
+    users = [(u.login, group.name in u.groups) for u in User.objects.all()]
     if request.method == "POST":
         form = GroupAddForm(users, request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            new_users = data.get("users", [])
-            added, _, _ = group.add_users(new_users, username=request.user.name)
-            if added:
-                msg = "{} has been added to the group '{}'".format(
-                    ", ".join(added), group.name
-                )
-                group.update(username=request.user.name)
-            else:
-                msg = "No user has been added to the group '{}'".format(group.name)
-            messages.add_message(request, messages.INFO, msg)
+
+            payload = {
+                "obj": {
+                    "name": name,
+                    "members": data.get("users", [])
+                }, 
+                "meta": {
+                    "sender": request.user.login
+                }
+            }
+            
+            
+            Notification.update_request_group(payload)
+                
+            messages.add_message(
+                request,
+                messages.INFO,
+                "Modification of group '{}' has been requested".format(name),
+            )
             return redirect("groups:view", name=name)
  
     else:
@@ -71,13 +87,22 @@ def delete_group(request, name):
     if not request.user.administrator:
         raise PermissionDenied
     if request.method == "POST":
-        group.delete(username=request.user.name)
+        obj = {"name": group.name}
+        
+        payload = {
+            "obj": obj,
+            "meta": {
+                "sender": request.user.login
+            }
+        }
+        
+        Notification.delete_request_group(payload)
+            
         messages.add_message(
-            request, messages.INFO, "The group '{}' has been deleted".format(group.name)
+            request, messages.INFO, "Request for deletion of group '{}' sent".format(group.name)
         )
-        return redirect("groups:home")
- 
-    # Requires delete on user
+        return redirect(GROUP_HOME)
+
     ctx = {
         "group": group,
     }
@@ -98,8 +123,8 @@ def edit_group(request, name):
         form = GroupForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            group.update(name=data["name"], username=request.user.name)
-            return redirect("groups:home")
+            group.update(name=data["name"], sender=request.user.login)
+            return redirect(GROUP_HOME)
     else:
         initial_data = {"name": group.name}
         form = GroupForm(initial=initial_data)
@@ -110,37 +135,36 @@ def edit_group(request, name):
     }
  
     return render(request, "groups/edit.html", ctx)
- 
- 
+
+
 @login_required
 def group_view(request, name):
     """Display the content of a group (users)"""
     group = Group.find(name)
     if not group:
-        return redirect("groups:home")
-        # raise Http404
-    ctx = {"user": request.user, "group_obj": group, "members": group.get_usernames()}
+        return redirect(GROUP_HOME)
+    ctx = {"user": request.user, "group": group, "members": group.get_members()}
     return render(request, "groups/view.html", ctx)
- 
- 
+
+
 @login_required
 def home(request):
     """"Display the main page fro groups (list of clickable groups)"""
     group_objs = list(Group.objects.all())
  
     paginator = Paginator(group_objs, 10)
-    page = request.GET.get("page")
+    page_num = request.GET.get("page")
     try:
-        groups = paginator.page(page)
+        page = paginator.page(page_num)
     except PageNotAnInteger:
         # If page is not an integer, deliver first page.
-        groups = paginator.page(1)
+        page = paginator.page(1)
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
-        groups = paginator.page(paginator.num_pages)
+        page = paginator.page(paginator.num_pages)
  
-    ctx = {"user": request.user, "groups": groups, "group_count": len(group_objs)}
-    return render(request, "groups/index.html", ctx)
+    ctx = {"user": request.user, "page": page, "group_count": len(group_objs)}
+    return render(request, "groups/home.html", ctx)
  
  
 @login_required
@@ -151,27 +175,39 @@ def new_group(request):
         if form.is_valid():
             data = form.cleaned_data
             groupname = data.get("name")
-            try:
-                group = Group.create(name=groupname, username=request.user.name)
-                messages.add_message(
-                    request,
-                    messages.INFO,
-                    "The group '{}' has been created".format(group.name),
-                )
-            except GroupConflictError:
+            if Group.find(groupname):
                 messages.add_message(
                     request,
                     messages.ERROR,
                     "Group '{}' already exists".format(groupname),
                 )
-            return redirect("groups:home")
+                return render(request, URL_GROUP_NEW, { 'form': form })
+              
+            payload = {
+                "obj": {
+                    "name": groupname,
+                },
+                "meta": {
+                    "sender": request.user.login
+                }
+            }
+            Notification.create_request_group(payload)
+                
+            messages.add_message(
+                request,
+                messages.INFO,
+                "Creation of group '{}' has been requested".format(groupname),
+            )
+            return redirect(GROUP_HOME)
+        else:
+            return render(request, URL_GROUP_NEW, { 'form': form })
     else:
         form = GroupForm()
+    
     ctx = {
         "form": form,
     }
- 
-    return render(request, "groups/new.html", ctx)
+    return render(request, URL_GROUP_NEW, ctx)
  
  
 @login_required
@@ -182,14 +218,25 @@ def rm_user(request, name, uname):
     if not request.user.administrator:
         raise PermissionDenied
     if user and group:
-        removed, not_there, not_exist = group.rm_user(uname, username=request.user.name)
-        if removed:
-            msg = "'{}' has been removed from the group '{}'".format(uname, name)
-        elif not_there:
-            msg = "'{}' isn't in the group '{}'".format(uname, name)
-        elif not_exist:
-            msg = "'{}' doesn't exist".format(uname)
-        messages.add_message(request, messages.INFO, msg)
+        lm = group.get_members()
+        lm.remove(uname)
+        
+        payload = {
+            "obj": {
+                "name": name,
+                "members": lm
+            }, 
+            "meta": {
+                "sender": request.user.login
+            }
+        }
+        Notification.update_request_group(payload)
+            
+        messages.add_message(
+            request,
+            messages.INFO,
+            "Removing '{}' from group '{}' has been requested".format(uname, name),
+        )
     else:
         raise Http404
     return redirect("groups:view", name=name)

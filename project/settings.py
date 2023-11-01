@@ -38,6 +38,7 @@ SECRET_KEY = 'ug59hyc@^zhryxybw6ohpi*ai7$1n-%-(dey@!)x$=8ovurj^8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+#DEBUG = False
 
 #ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1']
 ALLOWED_HOSTS = ['*']
@@ -54,9 +55,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "django_gravatar",
     "rest_framework",
+    "bootstrap5",    
+    'django_bootstrap_icons',
+    
     "activity",
     "archive",
     "groups",
+    "msi",
     "users",
     "settings",
     "rest_cdmi",
@@ -74,7 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "users.middleware.CassandraAuth",
+    "project.custom.CassandraMiddleware",
 ]
 
 ROOT_URLCONF = 'project.urls'
@@ -96,7 +101,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'project.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
@@ -142,7 +146,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 CDMI_SERVER = {
@@ -162,8 +166,8 @@ LOGIN_URL = "/users/login"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         #        'rest_framework.authentication.SessionAuthentication',
-        #"rest_framework.authentication.BasicAuthentication"
-        "users.middleware.CassandraAuth"
+        "rest_framework.authentication.BasicAuthentication",
+        "project.custom.CassandraAuthentication"
     ],
 #         'DEFAULT_PERMISSION_CLASSES': [
 #             'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'

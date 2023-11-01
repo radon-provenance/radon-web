@@ -15,10 +15,14 @@
 
 from django.urls import path
 
-from activity.views import home
+from activity.views import (
+    home,
+    notification
+)
 
 app_name = "activity"
 
 urlpatterns = [
     path("", home, name="home"),
+    path("notification", notification, name="notification"),
 ]

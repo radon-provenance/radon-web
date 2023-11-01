@@ -53,14 +53,23 @@
     {{form.metadata}}
     </div>
 
-    <button type="submit" class="btn btn-success btn-block">Save</button>
+
+  <div class="col text-end">
+    <button type="submit" class="btn btn-success btn-block">
+      {% if action == 'edit' %}
+        Send request to edit resource
+      {% elif action == 'new' %}
+        Send request to create resource
+      {% endif %}
+    </button>
+  </div>
 </form>
 
 <script type="text/javascript">
 $(document).ready(function(){
     $('#name').focus();
 
-    var mf_fields_count = $("#metadata_fields .form-group").size()
+    var mf_fields_count = $("#metadata_fields .form-group").length
 
     function setminus_visibile_on_first_row() {
         var first = $("#metadata_fields .form-group").get(0);

@@ -1,5 +1,5 @@
 # Dockerfile
-FROM python:3.6
+FROM python:3.11
 
 # Hostnames for dse and mqtt servers
 ARG DSE_HOST
@@ -12,7 +12,7 @@ ENV CQLENG_ALLOW_SCHEMA_MANAGEMENT 1
 
 # Install prerequisites
 RUN apt -y update && \
-  apt install -y nano less python-dev libldap2-dev libsasl2-dev libssl-dev apt-utils && \
+  apt install -y nano less libldap2-dev libsasl2-dev libssl-dev && \
   pip install --upgrade pip
 
 # Create destination folders

@@ -57,7 +57,6 @@ class JsonPairInputs(Widget):
 
         if (not value) or value.strip() == "":
             value = '{"":""}'
-        # twotuple = json.loads(force_unicode(value))
         twotuple = json.loads(value)
 
         if isinstance(twotuple, dict):
@@ -77,25 +76,31 @@ class JsonPairInputs(Widget):
                 }
                 ret += (
                     """
-                    <div class="form-group" id="">
+                    <div class="form-group row my-2" id="">
+                      
                         <div class="col-md-4">
-                            <input placeholder="Key" class="form-control" type="text" name="json_key[%(fieldname)s]" value="%(key)s" %(key_attrs)s>
+                            <input placeholder="Key" 
+                                   class="form-control" 
+                                   type="text" 
+                                   name="json_key[%(fieldname)s]" 
+                                   value="%(key)s" %(key_attrs)s>
                         </div>
-                        <div class="col-md-1" style="font-size: 2em; text-align: center;">
-                        =
+                        <div class="col-md-1 text-center">
+                          <span class="align-middle fs-4">=</span>
                         </div>
                         <div class="col-md-5">
-                            <input placeholder="Value"  class="form-control" type="text" name="json_value[%(fieldname)s]" value="%(value)s" %(val_attrs)s>
+                            <input placeholder="Value" 
+                                   class="form-control" 
+                                   type="text" 
+                                   name="json_value[%(fieldname)s]" 
+                                   value="%(value)s" %(val_attrs)s>
                         </div>
-                        <div class="col-md-2 btn-group" role="group" aria-label="...">
-                            <a class="btn btn-large btn-success">
-                                <i class="glyphicon glyphicon-plus"></i>
-                            </a>
-                            <a class="btn btn-large btn-danger">
-                                <i class="glyphicon glyphicon-minus"></i>
-                            </a>
+                        <div class="col-md-2 btn-group" role="group">
+                            <a class="btn btn-success btn-sm mx-1 my-1">+</a>
+                            <a class="btn btn-danger btn-sm mx-1 my-1">-</a>
                         </div>
                         <div class="clearfix"></div>
+                        
                     </div>
                     """
                     % ctx

@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 
+{% load bootstrap_icons %}
+
+
 {% block title %}Login{% endblock title %}
 
 {% block content %}
 
-<div class="row">
-  <br/><br/>
-  <div class="col-md-4 col-md-offset-4 col-sm-4 col-sm-offset-4">
+<div class="row justify-content-center">
+  <div class="col-4 my-5">
 
 
   {% if errors %}
@@ -16,28 +18,63 @@
   {% endif %}
 
 
-  <center><h2>Login to Radon</h2></center>
-  <div class="well">
-    <form id="loginForm" method="POST" action="{% url 'users:auth_login' %}" novalidate="novalidate">
+  <h2 class="text-center">Login to Radon</h2>
+  
+  <div>
+    <form class="bg-light card p-3
+          id="loginForm" 
+          method="POST" 
+          action="{% url 'users:auth_login' %}" 
+          novalidate="novalidate">
       {% csrf_token %}
-      <div class="form-group">
-        <label for="username" class="control-label">Username</label>
-        <input type="text" class="form-control" id="username" name="username" value="" required="" title="Please enter you username" placeholder="Username">
-        <span class="help-block"></span>
+      
+      <div class="input-group py-2">
+        <span class="input-group-text" 
+              id="basic-addon1">
+          {% bs_icon 'person-fill' color='#428bca' %}
+        </span>
+        <input type="text" 
+               class="form-control" 
+               placeholder="Username" 
+               aria-label="Username"
+                aria-describedby="basic-addon1"
+               id="username" 
+               name="username" 
+               title="Please enter you username"  />
       </div>
-      <div class="form-group">
-        <label for="password" class="control-label">Password</label>
-        <input type="password" class="form-control" id="password" name="password" value="" required="" title="Please enter your password" placeholder="Password">
-        <span class="help-block"></span>
+      
+      
+      <div class="input-group py-2">		  
+        <span class="input-group-text" 
+              id="basic-addon1">
+          {% bs_icon 'shield-lock' color='#428bca' %}
+        </span>		  
+        <input type="password" 
+               class="form-control" 
+               id="password" 
+               name="password" 
+               value="" 
+               required="" 
+               title="Please enter your password" 
+               placeholder="Password" />
+         <span class="input-group-text" 
+               id="basic-addon1"
+               onclick="password_show_hide();">
+           <span id="show_eye">{% bs_icon 'eye-fill' color='#428bca' %}</span>
+           <span class="d-none" id="hide_eye">{% bs_icon 'eye-slash-fill' color='#428bca' %}</span class="d-none">
+         </span>
+          
+        </span>
       </div>
-      <div id="loginErrorMsg" class="alert alert-error hide">Wrong username or password</div>
 
-        <label>
-            <input type="hidden" name="remember" id="remember" checked="checked">
-        </label>
 
-      <button type="submit" class="btn btn-success btn-block">Login</button>
+
+	 	<div class="text-center">
+          <button type="submit" class="btn btn-success btn-block">Login</button>
+        </div>
+        
       <!--<a href="/accounts/forgot/" class="btn btn-default btn-block">Forgotten password</a>-->
+      
     </form>
   </div>
  </div>

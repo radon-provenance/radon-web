@@ -14,14 +14,13 @@
 
 
 import json
-from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
     permission_classes,
 )
-from rest_framework.authentication import BasicAuthentication, exceptions
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import (
@@ -34,49 +33,16 @@ from rest_framework.status import (
     HTTP_405_METHOD_NOT_ALLOWED,
     HTTP_409_CONFLICT,
 )
-import ldap
+
+from project.custom import CassandraAuthentication
 
 from radon.model import Group
 from radon.model import User
 
 
-class CassandraAuthentication(BasicAuthentication):
-    """HTTP Basic authentication against username/password, stored in Cassandra"""
-
-    www_authenticate_realm = "Radon"
-
-    def authenticate_credentials(self, userid, password, request=None):
-        """
-        Authenticate the userid and password against username and password.
-        """
-        cass_user = User.find(userid)
-        if cass_user is None or not cass_user.is_active():
-            raise exceptions.AuthenticationFailed(_("User inactive or deleted."))
-        if not cass_user.authenticate(password) and not ldap_authenticate(
-            cass_user.uuid, password
-        ):
-            raise exceptions.AuthenticationFailed(_("Invalid username/password."))
-        return (cass_user, None)
-
-
-def ldap_authenticate(username, password):
-    """Try to authenticate to a ldap server"""
-    if settings.AUTH_LDAP_SERVER_URI is None:
-        return False
-
-    if settings.AUTH_LDAP_USER_DN_TEMPLATE is None:
-        return False
-
-    try:
-        connection = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
-        connection.protocol_version = ldap.VERSION3
-        user_dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {"user": username}
-        connection.simple_bind_s(user_dn, password)
-        return True
-    except ldap.INVALID_CREDENTIALS:
-        return False
-    except ldap.SERVER_DOWN:
-        return False
+MSG_LACK_AUTHORIZATION = "User lack authorization"
+MSG_METH_NOT_ALLOWED = "Method Not Allowed"
+MSG_INVALID_JSON = "Invalid JSON body"
 
 
 @api_view(["GET"])
@@ -84,7 +50,7 @@ def ldap_authenticate(username, password):
 @permission_classes((IsAuthenticated,))
 def authenticate(request):
     """Authenticate a user"""
-    msg = u"User {} is authenticated".format(request.user.name)
+    msg = u"User {} is authenticated".format(request.user.login)
     return Response({"message": msg})
 
 
@@ -94,19 +60,19 @@ def authenticate(request):
 def group(request, groupname):
     """REST calls to manage a group"""
     if request.method == "GET":
-        return ls_group(request, groupname)
+        return ls_group(groupname)
     elif request.method == "DELETE":
         if request.user and request.user.administrator:
-            return delete_group(request, groupname)
+            return delete_group(groupname)
         else:
-            return Response("User lack authorization.", status=HTTP_403_FORBIDDEN)
+            return Response(MSG_LACK_AUTHORIZATION, status=HTTP_403_FORBIDDEN)
     elif request.method == "PUT":
         if request.user and request.user.administrator:
             return modify_group(request, groupname)
         else:
-            return Response("User lack authorization.", status=HTTP_403_FORBIDDEN)
+            return Response(MSG_LACK_AUTHORIZATION, status=HTTP_403_FORBIDDEN)
     else:
-        return Response("Method Not Allowed", status=HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(MSG_METH_NOT_ALLOWED, status=HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(["GET", "POST"])
@@ -120,9 +86,9 @@ def groups(request):
         if request.user and request.user.administrator:
             return create_group(request)
         else:
-            return Response("User lack authorization.", status=HTTP_403_FORBIDDEN)
+            return Response(MSG_LACK_AUTHORIZATION, status=HTTP_403_FORBIDDEN)
     else:
-        return Response("Method Not Allowed", status=HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(MSG_METH_NOT_ALLOWED, status=HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(["GET", "PUT", "DELETE"])
@@ -131,19 +97,19 @@ def groups(request):
 def user(request, username):
     """REST calls to manage a user"""
     if request.method == "GET":
-        return ls_user(request, username)
+        return ls_user(username)
     elif request.method == "PUT":
         if request.user and request.user.administrator:
             return modify_user(request, username)
         else:
-            return Response("User lack authorization.", status=HTTP_403_FORBIDDEN)
+            return Response(MSG_LACK_AUTHORIZATION, status=HTTP_403_FORBIDDEN)
     elif request.method == "DELETE":
         if request.user and request.user.administrator:
-            return delete_user(request, username)
+            return delete_user(username)
         else:
-            return Response("User lack authorization.", status=HTTP_403_FORBIDDEN)
+            return Response(MSG_LACK_AUTHORIZATION, status=HTTP_403_FORBIDDEN)
     else:
-        return Response("Method Not Allowed", status=HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(MSG_METH_NOT_ALLOWED, status=HTTP_405_METHOD_NOT_ALLOWED)
 
 
 def create_group(request):
@@ -154,7 +120,7 @@ def create_group(request):
         body = request.body
         request_body = json.loads(body)
     except (TypeError, json.JSONDecodeError):
-        return Response("Invalid JSON body", status=HTTP_400_BAD_REQUEST)
+        return Response(MSG_INVALID_JSON, status=HTTP_400_BAD_REQUEST)
     try:
         groupname = request_body["groupname"]
     except KeyError:
@@ -177,7 +143,7 @@ def create_user(request):
         body = request.body
         request_body = json.loads(body)
     except (TypeError, json.JSONDecodeError):
-        return Response("Invalid JSON body", status=HTTP_400_BAD_REQUEST)
+        return Response(MSG_INVALID_JSON, status=HTTP_400_BAD_REQUEST)
     try:
         username = request_body["username"]
     except KeyError:
@@ -200,7 +166,7 @@ def create_user(request):
     return Response(new_user_db.to_dict(), status=HTTP_201_CREATED)
 
 
-def delete_group(request, groupname):
+def delete_group(groupname):
     """Delete a group"""
     group_db = Group.find(groupname)
     if not group_db:
@@ -211,7 +177,7 @@ def delete_group(request, groupname):
     return Response(u"Group {} has been deleted".format(groupname), status=HTTP_200_OK)
 
 
-def delete_user(request, username):
+def delete_user(username):
     """Delete a user"""
     user_db = User.find(username)
     if not user_db:
@@ -286,7 +252,7 @@ def modify_group(request, groupname):
         body = request.body
         request_body = json.loads(body)
     except (TypeError, json.JSONDecodeError):
-        return Response("Invalid JSON body", status=HTTP_400_BAD_REQUEST)
+        return Response(MSG_INVALID_JSON, status=HTTP_400_BAD_REQUEST)
     group_db = Group.find(groupname)
     if not group_db:
         return Response(
@@ -303,9 +269,8 @@ def modify_group(request, groupname):
     return Response("Bad request", status=HTTP_400_BAD_REQUEST)
 
 
-def ls_group(request, groupname):
+def ls_group(groupname):
     """Get a list of groups"""
-    # TODO check if groupname is valid to test ?
     group_db = Group.find(groupname)
     try:
         return Response(group_db.to_dict())
@@ -327,7 +292,7 @@ def modify_user(request, username=""):
         body = request.body
         request_body = json.loads(body)
     except (TypeError, json.JSONDecodeError):
-        return Response("Invalid JSON body", status=HTTP_400_BAD_REQUEST)
+        return Response(MSG_INVALID_JSON, status=HTTP_400_BAD_REQUEST)
     if username is None:
         try:
             username = request_body["username"]
@@ -349,9 +314,8 @@ def modify_user(request, username=""):
     return Response(user_db.to_dict(), status=HTTP_200_OK)
 
 
-def ls_user(request, username):
+def ls_user(username):
     """List user info"""
-    # TODO check if username is valid to test ?
     user_db = User.find(username)
     if user_db:
         return Response(user_db.to_dict(), status=HTTP_200_OK)
@@ -367,8 +331,8 @@ def ls_user(request, username):
 def users(request):
     """REST calls for users"""
     if request.method == "GET":
-        return Response([u.name for u in User.objects.all()])
+        return Response([u.login for u in User.objects.all()])
     elif request.method == "POST":
         return create_user(request)
     else:
-        return Response("Method Not Allowed", status=HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(MSG_METH_NOT_ALLOWED, status=HTTP_405_METHOD_NOT_ALLOWED)

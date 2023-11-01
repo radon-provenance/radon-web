@@ -22,9 +22,113 @@ from django.contrib import messages
 from users.forms import UserForm
 from radon.model import (
     Group,
+    Notification,
     User
 )
 from radon.model.errors import UserConflictError
+
+
+USERS_HOME = "users:home"
+
+URL_USER_NEW = "users/new.html"
+
+@login_required
+def delete_user(request, login):
+    """Delete a user"""
+    user = User.find(login)
+    if not user:
+        raise Http404
+
+    if not request.user.administrator:
+        raise PermissionDenied
+ 
+    if request.method == "POST":
+        obj = {"login": user.login}
+        
+        payload = {
+            "obj": obj,
+            "meta": {
+                "sender": request.user.login
+            }
+        }
+        
+        Notification.delete_request_user(payload)
+            
+        messages.add_message(
+            request, messages.INFO, "Request for deletion of user '{}' sent".format(login)
+        )
+        return redirect(USERS_HOME)
+
+    # Requires delete on user
+    ctx = {
+        "login": login,
+    }
+
+    return render(request, "users/delete.html", ctx)
+
+
+@login_required
+def edit_user(request, login):
+    """Modify a user"""
+    # Requires edit on user
+    user = User.find(login)
+    if not user:
+        raise Http404()
+ 
+    if not request.user.administrator:
+        raise PermissionDenied
+ 
+    if request.method == "POST":
+        form = UserForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            
+            obj = {"login": user.login}
+            
+            if data["email"] != user.email:
+                obj["email"] = data["email"]
+            if data["administrator"] != user.administrator:
+                obj["administrator"] = data["administrator"]
+            if data["active"] != user.active:
+                obj["active"] = data["active"]
+            if data["ldap"] != user.ldap:
+                obj["ldap"] = data["ldap"]
+            if data["password"] != user.password:
+                obj["password"] = data["password"]
+            if data["fullname"] != user.fullname:
+                obj["fullname"] = data["fullname"]
+            
+            
+            payload = {
+                "obj": obj,
+                "meta": {
+                    "sender": request.user.login
+                }
+            }
+            
+            Notification.update_request_user(payload)
+            messages.add_message(
+                request, messages.INFO, "User '{}' has been updated".format(user.login)
+            )
+            return redirect(USERS_HOME)
+    else:
+        initial_data = {
+            "login": user.login,
+            "email": user.email,
+            "fullname": user.fullname,
+            "administrator": user.administrator,
+            "active": user.active,
+            "ldap": user.ldap,
+            "password": user.password,
+        }
+        form = UserForm(initial=initial_data)
+
+    ctx = {
+        "form": form,
+        "user": user,
+    }
+ 
+    return render(request, "users/edit.html", ctx)
 
 
 @login_required
@@ -34,18 +138,73 @@ def home(request):
     user_objs = list(User.objects.all())
  
     paginator = Paginator(user_objs, 10)
-    page = request.GET.get("page")
+    page_num = request.GET.get("page")
     try:
-        users = paginator.page(page)
+        page = paginator.page(page_num)
     except PageNotAnInteger:
         # If page is not an integer, deliver first page.
-        users = paginator.page(1)
+        page = paginator.page(1)
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
-        users = paginator.page(paginator.num_pages)
+        page = paginator.page(paginator.num_pages)
+    
  
-    ctx = {"user": request.user, "users": users, "user_count": len(user_objs)}
-    return render(request, "users/index.html", ctx)
+    ctx = {"user": request.user, "page": page, "user_count": len(user_objs)}
+    return render(request, "users/home.html", ctx)
+
+
+@login_required
+def new_user(request):
+    """Create a new user"""
+    if request.method == "POST":
+        form = UserForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            login = data.get("login")
+            if User.find(login):
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "User '{}' already exists".format(login),
+                )
+                return render(request, URL_USER_NEW, { 'form': form })
+            obj = {
+                "login": login,
+                "password": data.get("password").encode("ascii", "ignore").decode("utf-8"),
+            }
+            
+            if data.get("email"):
+                obj['email'] = data.get("email")
+            if data.get("fullname"):
+                obj['fullname'] = data.get("fullname")
+            obj['administrator'] = data.get("administrator", False)
+            obj["active"] = data.get("active", True)
+            obj["ldap"] = data.get("ldap", False)
+            
+            
+            payload = {
+                "obj": obj,
+                "meta": {
+                    "sender": request.user.login
+                }
+            }
+            Notification.create_request_user(payload)
+            
+            messages.add_message(
+                request,
+                messages.INFO,
+                "Creation of user '{}' has been requested".format(login),
+            )
+            return redirect(USERS_HOME)
+        else:
+            return render(request, URL_USER_NEW, { 'form': form })
+    else:
+        form = UserForm()
+ 
+    ctx = {
+        "form": form,
+    }
+    return render(request, URL_USER_NEW, ctx)
 
 
 def userlogin(request):
@@ -71,7 +230,7 @@ def userlogin(request):
                 errors = invalid
  
         if not errors:
-            request.session["user"] = user.name
+            request.session["user"] = user.login
             return redirect("/")
  
     ctx = {}
@@ -79,114 +238,6 @@ def userlogin(request):
         ctx = {"errors": errors}
  
     return render(request, "users/login.html", ctx)
-
-
-@login_required
-def delete_user(request, name):
-    """Delete a user"""
-    user = User.find(name)
-    if not user:
-        raise Http404
-
-    if not request.user.administrator:
-        raise PermissionDenied
- 
-    if request.method == "POST":
-        user.delete(username=request.user.name)
-        messages.add_message(
-            request, messages.INFO, "User '{}' has been deleted".format(user.name)
-        )
-        return redirect("users:home")
-
-    # Requires delete on user
-    ctx = {
-        "user": user,
-    }
-
-    return render(request, "users/delete.html", ctx)
-
-
-@login_required
-def edit_user(request, name):
-    """Modify a user"""
-    # Requires edit on user
-    user = User.find(name)
-    if not user:
-        raise Http404()
- 
-    if not request.user.administrator:
-        raise PermissionDenied
- 
-    if request.method == "POST":
-        form = UserForm(request.POST)
-        if form.is_valid():
-            data = form.cleaned_data
-            user.update(
-                email=data["email"],
-                administrator=data["administrator"],
-                active=data["active"],
-                username=request.user.name,
-            )
-            if data["password"] != user.password:
-                user.update(password=data["password"], username=request.user.name)
-            messages.add_message(
-                request, messages.INFO, "User '{}' has been updated".format(user.name)
-            )
-            return redirect("users:home")
-    else:
-        initial_data = {
-            "username": user.name,
-            "email": user.email,
-            "administrator": user.administrator,
-            "active": user.active,
-            "password": user.password,
-        }
-        form = UserForm(initial=initial_data)
-
-    ctx = {
-        "form": form,
-        "user": user,
-    }
- 
-    return render(request, "users/edit.html", ctx)
-
-
-@login_required
-def new_user(request):
-    """Create a new user"""
-    if request.method == "POST":
-        form = UserForm(request.POST)
-        if form.is_valid():
-            data = form.cleaned_data
-            username = data.get("username")
-            try:
-                user = User.create(
-                    name=username,
-                    password=data.get("password").encode("ascii", "ignore"),
-                    email=data.get("email", ""),
-                    administrator=data.get("administrator", False),
-                    active=data.get("active", False),
-                    username=request.user.name,
-                )
-                messages.add_message(
-                    request,
-                    messages.INFO,
-                    "User '{}' has been created".format(user.name),
-                )
-            except UserConflictError:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "User '{}' already exists".format(username),
-                )                
-            return redirect("users:home")
-    else:
-        form = UserForm()
- 
-    ctx = {
-        "form": form,
-    }
-    return render(request, "users/new.html", ctx)
 
 
 def userlogout(request):
@@ -197,12 +248,12 @@ def userlogout(request):
 
 
 @login_required
-def user_view(request, name):
+def view(request, login):
     """Render the view page for users"""
     # argument is the login name, not the uuid in Cassandra
-    user = User.find(name)
+    user = User.find(login)
     if not user:
-        return redirect("users:home")
+        return redirect(USERS_HOME)
  
     ctx = {
         "req_user": request.user,
@@ -210,3 +261,7 @@ def user_view(request, name):
         "groups": [Group.find(gname) for gname in user.groups],
     }
     return render(request, "users/view.html", ctx)
+
+
+
+

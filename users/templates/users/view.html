@@ -1,41 +1,104 @@
 {% extends "users/base.html" %}
 {% load gravatar %}
 
-{% block title %}Users - {{user_obj.name}}{% endblock title %}
+{% block title %}Users - {{user_obj.login}}{% endblock title %}
 
 {% block main_content %}
-    <h2>{% gravatar user_obj.email 40 %} {{ user_obj.name }}</h2>
 
-    <hr/>
-    <h3>Profile</h3>
+<div class="row">
+  <div class="col">
+    <h2>{% gravatar user_obj.email 40 %} {{ user_obj.login }}</h2>
+  </div>
+  <div class="col text-end">
+    <a class="btn btn-primary" href="{% url 'users:home' %}">
+      &laquo; Back to User list
+    </a>
+  </div>
+</div>
 
-    <div>
-        {% if req_user.administrator %}
-          <div>
-              <strong>Active:</strong> <input type="checkbox" name="active" {% if user_obj.active %}checked{% endif %} readonly />
-          </div>
-          <div>
-              <strong>Administrator:</strong> <input type="checkbox" name="active" {% if user_obj.administrator %}checked{% endif %} readonly/>
-          </div>
-        {% endif %}
-        
-        <div>
-            <strong>Email:</strong> {{ user_obj.email|default:"Private"}}
-        </div>
-        
-        {% if req_user.administrator %}
-        <div>
-          <strong>Groups:</strong>
-          <ul>
+<hr/>
+
+<h3>Profile</h3>
+
+
+<table class="table table-light table-striped" aria-role="presentation" aria-label="List of user information">
+  <tr> 
+    <td>
+      <label class="form-label fw-bold">Full Name</label>
+    </td>
+    <td class="w-75">
+      <label class="form-label">{{ user_obj.fullname }}</label>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <label class="form-label fw-bold">Email</label>
+    </td>
+    <td class="w-75">
+      <label class="form-label">{{ user_obj.email|default:"Private" }}</label>
+    </td>
+  </tr>
+  
+  {% if req_user.administrator %}
+    <tr>
+      <td>
+        <label class="form-label fw-bold">Active</label>
+      </td>
+      <td>
+        <input type="checkbox" 
+               disabled="disabled" 
+               name="active" 
+               {% if user_obj.active %}checked{% endif %}
+               readonly />
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label class="form-label fw-bold">Administrator</label>
+      </td>
+      <td>
+        <input type="checkbox" 
+               disabled="disabled" 
+               name="administrator" 
+               {% if user_obj.administrator %}checked{% endif %}
+               readonly />
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label class="form-label fw-bold">Ldap User</label>
+      </td>
+      <td>
+        <input type="checkbox" 
+               disabled="disabled" 
+               name="administrator" 
+               {% if user_obj.ldap %}checked{% endif %}
+               readonly />
+      </td>
+    </tr>
+  {% endif %}
+
+
+  
+  {% if req_user.administrator %}
+  <tr>
+      <td>
+        <label class="form-label fw-bold">Groups</label>
+      </td>
+      <td>
+        <ul>
           {% for g in groups %}
             <li>
               <a href="{% url 'groups:view' name=g.name %}">{{g.name}}</a>
             </li>
           {% endfor %}
           </ul>
-        </div>
-        {% endif %}
-    </div>
+      </td>
+    </tr>
+  {% endif %}
+
+</table>
 
 
 {% endblock main_content %}

@@ -4,11 +4,10 @@
 
 {% block main_content %}
 
-<h2> &nbsp;
-  <div class="div-search" style="width:400px;">
-    {% include "snippets/search_form.html" with q=q size="small"%}
-  </div>
-  </h2>
+<div class="div-search">
+  {% include "snippets/search_form.html" with q=q size="small"%}
+</div>
+  
 <hr/>
 
 {% include "archive/collection/collection.html" with collection=collection%}

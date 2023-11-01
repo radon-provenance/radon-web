@@ -28,10 +28,10 @@ app_name = "groups"
 
 urlpatterns = [
     path("", home, name="home"),
-    path("new/group", new_group, name="new_group"),
-    path("delete/group/<str:name>", delete_group, name="delete_group"),
-    path("edit/group/<str:name>", edit_group, name="edit_group"),
-    path("rm/<name>/<str:uname>", rm_user, name="rm_user"),
-    path("add/<str:name>", add_user, name="add_user"),
+    path("new", new_group, name="new_group"),
+    path("delete/<str:name>", delete_group, name="delete_group"),
+    path("edit/<str:name>", edit_group, name="edit_group"),
+    path("rm_user/<str:name>/<str:uname>", rm_user, name="rm_user"),
+    path("add_user/<str:name>", add_user, name="add_user"),
     path("<str:name>", group_view, name="view"),
 ]

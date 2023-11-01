@@ -1,64 +1,60 @@
- <!-- Fixed navbar -->
-<nav class="navbar navbar-default navbar-fixed-top">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
+{% load static %}
+{% url 'home' as home %}
+{% url 'about' as about %}
+{% url 'contact' as contact %}
 
-    </div>
-
-    {% url 'home' as home %}
-    {% url 'about' as about %}
-    {% url 'contact' as contact %}
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-        <li {% if request.path == home %}class="active"
-        {% endif %}>
-          <a href="/">Home</a>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light ">
+  <div class="container-fluid">
+    <a class="navbar-brand mt-2 mt-lg-0" href="/">
+      <img src="{% static 'img/radon_brand.png' %}" style="width:40px;" alt="Radon Logo" loading="lazy"/>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+            data-bs-target="#navbarNav" aria-controls="navbarNav" 
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+       <ul class="navbar-nav">      
+        <li class="nav-item {% if request.path == home %}active{% endif %}">
+          <a class="nav-link" href="/">Home</a>
         </li>
-
         {% if request.user.is_authenticated %}
-
-        <li {% if '/archive' in request.path %}class="active"{% endif %}>
-            <a href="{% url 'archive:home' %}">Archive</a>
+        <li class="nav-item {% if '/archive' in request.path %}active{% endif %}">
+          <a class="nav-link" href="{% url 'archive:home' %}">Archive</a>
         </li>
-        {% endif %}
+        {% endif %}        
+        <li class="nav-item {% if request.path == about %}active{% endif %}">
+          <a class="nav-link" href="{% url 'about' %}">About</a>
+        </li>        
+        <li class="nav-item {% if request.path == contact %}active{% endif %}">
+          <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+        </li>        
+      </ul>   
+    </div>  
+    <ul class="nav navbar-nav ms-auto">
+      {% if not request.user.is_authenticated %}
+        <li class="nav-item"><a href="{% url 'users:auth_login' %}">Login</a></li>
+      {% else %}
+        <li class="nav-item dropdown">
+          <a href="#" class="nav-link dropdown-toggle" role="button" 
+             data-bs-toggle="dropdown" aria-expanded="false">
+            Welcome, {{ request.user.get_fullname|default:request.user.login }}
+            <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu">
+            {% if user.administrator %}
+            <li><a class="dropdown-item" href="{% url 'users:home' %}">Users</a></li>
+            <li><a class="dropdown-item" href="{% url 'groups:home' %}">Groups</a></li>
+            {% endif %}
 
-        <li {% if request.path == about %}class="active"
-        {% endif %}>
-          <a href="{% url 'about' %}">About</a>
+            <li><a class="dropdown-item" href="{% url 'activity:home' %}">Activity</a></li>
+            <li class="divider"></li>
+            <li><a class="dropdown-item" href="{% url 'users:auth_logout' %}">Logout</a></li>
+          </ul>
         </li>
-        <li {% if request.path == contact %}class="active"
-        {% endif %}>
-          <a href="{% url 'contact' %}">Contact</a>
-        </li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
-          {% if not request.user.is_authenticated %}
-              <li><a href="{% url 'users:auth_login' %}">Login</a></li>
-          {% else %}
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                Welcome, {{ request.user.get_full_name|default:request.user.name }}
-                <span class="caret"></span>
-              </a>
-               <ul class="dropdown-menu" role="menu">
-                {% if user.administrator %}
-                <li><a href="{% url 'users:home' %}">Users</a></li>
-                <li><a href="{% url 'groups:home' %}">Groups</a></li>
-                {% endif %}
-
-                <li><a href="{% url 'activity:home' %}">Activity</a></li>
-                <li class="divider"></li>
-                <li><a href="{% url 'users:auth_logout' %}">Logout</a></li>
-              </ul>
-            </li>
-          {% endif %}
-      </ul>
-    </div>
+      {% endif %}
+    </ul>
   </div>
 </nav>
+<!-- Navbar -->

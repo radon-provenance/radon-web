@@ -220,8 +220,6 @@ class CDMIResource():
 
     def get_value(self, child_range=None):
         """Return content of the resource"""
-        # TODO: Improve that for large files. Check what CDMI recommends
-        # for stream access
         data = []
         for chk in self.chunk_content():
             data.append(chk)
