@@ -50,7 +50,11 @@
         <a class="btn btn-danger" href='{% url "archive:delete_resource" path=resource.path %}'>Delete Item</a>
         {% endif %}
 
-        <div class="clearfix"></div>
+        {% if preview %}
+        <a class="btn btn-info float-end" href='{% url "archive:preview" path=resource.path %}'>Preview Item</a>
+        {% endif %}
+
+        
     </div>
 
     <hr/>

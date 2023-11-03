@@ -52,6 +52,7 @@ URL_ARCHIVE_NEW = "archive/new.html"
 MSG_NAME_CONFLICT = "That name is in use in the current collection"
 
 
+
 @login_required
 def delete_collection(request, path):
     """Display the page to delete a collection"""
@@ -552,6 +553,40 @@ def new_resource(request, parent):
     return render(request, "archive/resource/new.html", ctx)
 
 
+def preview_test(resource):
+    return "test"
+
+
+def preview_text_json(resource):
+    res = ""
+    if resource.is_reference():
+        r = requests.get(resource.url, stream=True)
+        print(r)
+    else:
+        data = []
+        for chk in resource.chunk_content():
+            data.append(chk)
+        res = b"".join([s for s in data])
+        json_obj = json.loads(res)
+        res = "<pre>{}</pre>".format(json.dumps(json_obj, indent=2))
+
+    return res
+
+
+def preview_text_plain(resource):
+    res = ""
+    if resource.is_reference():
+        r = requests.get(resource.url, stream=True)
+        print(r)
+    else:
+        data = []
+        for chk in resource.chunk_content():
+            data.append(chk)
+        res = b"".join([s for s in data])
+
+    return res
+
+
 @login_required
 def preview(request, path):
     """
@@ -563,12 +598,48 @@ def preview(request, path):
     if not resource:
         raise Http404
  
-    preview_info = {
-        # "type": "image",
-        # "url": "http://....."
-    }
+    container = Collection.find(resource.container)
+    if not container:
+        # The container has to be there. If not it may be a network
+        # issue with Cassandra so we try again before raising an error to the
+        # user
+        container = Collection.find(resource.container)
+        if not container:
+            return HttpResponse(
+                status=408,
+                content="Unable to find parent container '{}'".format(
+                    resource.container
+                ),
+            )
+    
+    
+    paths = []
+    full = "/"
+    for pth in container.path.split("/"):
+        if not pth:
+            continue
+        full = u"{}{}/".format(full, pth)
+        paths.append((pth, full))
+    
+    
+   
+    data = ""
+    if resource.get_mimetype() in PREVIEW_MIMETYPE:
+        data = PREVIEW_MIMETYPE.get(resource.get_mimetype())(resource)
+    
+    
+    ctx = {
+        "resource": resource.full_dict(request.user),
+        "container": container,
+        "container_path": container.path,
+        "collection_paths": paths,
+        "content": data
+        }
  
-    return render(request, "archive/preview.html", {"preview": preview_info})
+ 
+    return render(request, 
+                  "archive/resource/preview.html", 
+                  ctx)
 
 
 def search(request):
@@ -679,6 +750,16 @@ def view_resource(request, path):
         "container": container,
         "container_path": container.path,
         "collection_paths": paths,
+        "preview": resource.get_mimetype() in PREVIEW_MIMETYPE.keys()
     }
     return render(request, "archive/resource/view.html", ctx)
 
+
+
+
+
+PREVIEW_MIMETYPE = {
+    "text/json" : preview_text_json,
+    "text/plain" : preview_text_json,
+    "test" : preview_test
+}

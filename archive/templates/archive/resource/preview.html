@@ -1,0 +1,66 @@
+{% extends "archive/base.html" %}
+
+{% block title %}Item - {{resource.name}}{% endblock title %}
+
+{% block main_content %}
+
+
+<div class="div-search">
+  {% include "snippets/search_form.html" with q=q size="small"%}
+</div>
+  
+<hr/>
+
+<div class="text-end">
+	<a class="btn btn-success pull-right" href="{% url 'archive:download' path=resource.path %}">
+		Download file
+	</a>
+</div>
+
+<hr/>
+
+
+<nav aria-label="breadcrumb">
+ <ol class="breadcrumb py-1 ps-1">
+  <li class="breadcrumb-item align-self-center"><a href="{% url 'archive:view' %}">Home</a></li>
+  {% for coll,full in collection_paths %}
+    {% if forloop.last %}
+        <li class="breadcrumb-item align-self-center active">
+			<a href="{% url 'archive:view' path=full %}">{{coll}}</a>
+	    </li>
+    {% else %}
+        <li class="breadcrumb-item align-self-center">
+	      <a href="{% url 'archive:view' path=full %}">{{coll}}</a>
+	    </li>
+    {% endif %}
+  {% endfor %}
+  
+   <li class="breadcrumb-item align-self-center">{{resource.name}}</li>
+ </ol>
+</nav>
+
+
+{# Permission check for action bar .... #}
+
+    <div class="control-bar">
+        {% if resource.can_edit %}
+        <a class="btn btn-info" href='{% url "archive:edit_resource" path=resource.path %}'%}>Edit Item</a>
+        {% endif %}
+        {% if resource.can_delete %}
+        <a class="btn btn-danger" href='{% url "archive:delete_resource" path=resource.path %}'>Delete Item</a>
+        {% endif %}
+
+        <a class="btn btn-info float-end" href='{% url "archive:resource_view" path=resource.path %}'>View Item</a>
+    </div>
+
+    <hr/>
+    
+    {% autoescape off %}
+    {{ content }}
+    {% endautoescape %}
+
+
+
+{% endblock main_content %}
+
+
