@@ -52,7 +52,8 @@ def msi_create_collection(payload):
     obj = payload_check("/obj", payload)
     if not obj:
         msg = MSG_MISSING_OBJ
-        Notification.create_fail_collection(payload, msg)
+        payload['meta']['msg'] = msg
+        Notification.create_fail_collection(payload)
         return { "err": True, "msg" : msg}
         
     coll = Collection.create(**obj)
@@ -83,7 +84,8 @@ def msi_create_resource(payload):
     obj = payload_check("/obj", payload)
     if not obj:
         msg = MSG_MISSING_OBJ
-        Notification.create_fail_resource(payload, msg)
+        payload['meta']['msg'] = msg
+        Notification.create_fail_resource(payload)
         return { "err": True, "msg" : msg}
     
     resc = Resource.create(**obj)
@@ -112,7 +114,8 @@ def msi_create_group(payload):
     obj = payload_check("/obj", payload)
     if not obj:
         msg = MSG_MISSING_OBJ
-        Notification.create_fail_group(payload, msg)
+        payload['meta']['msg'] = msg
+        Notification.create_fail_group(payload)
         return { "err": True, "msg" : msg}
     
     group = Group.create(**obj)
@@ -143,7 +146,8 @@ def msi_create_user(payload):
     obj = payload_check("/obj", payload)
     if not obj:
         msg = MSG_MISSING_OBJ
-        Notification.create_fail_user(payload, msg)
+        payload['meta']['msg'] = msg
+        Notification.create_fail_user(payload)
         return { "err": True, "msg" : msg}
     
     user = User.create(**obj)
@@ -174,7 +178,8 @@ def msi_delete_collection(payload):
     obj = payload_check("/obj", payload)
     if not obj:
         msg = MSG_MISSING_OBJ
-        Notification.delete_fail_collection(payload, msg)
+        payload['meta']['msg'] = msg
+        Notification.delete_fail_collection(payload)
         return { "err": True, "msg" : msg}
     
     coll = Collection.find(merge(payload_check(P_OBJ_CONTAINER, payload),
@@ -245,7 +250,8 @@ def msi_delete_resource(payload):
     obj = payload_check("/obj", payload)
     if not obj:
         msg = MSG_MISSING_OBJ
-        Notification.delete_fail_resource(payload, msg)
+        payload['meta']['msg'] = msg
+        Notification.delete_fail_resource(payload)
         return { "err": True, "msg" : msg}
     
     resc = Resource.find(merge(payload_check(P_OBJ_CONTAINER, payload),
@@ -316,7 +322,6 @@ def msi_update_collection(payload):
     if not obj:
         msg = MSG_MISSING_OBJ
         payload['meta']['msg'] = msg
-        
         Notification.update_fail_collection(payload)
         return { "err": True, "msg" : msg}
     

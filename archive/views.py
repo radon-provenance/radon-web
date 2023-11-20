@@ -583,6 +583,7 @@ def preview_text_plain(resource):
         for chk in resource.chunk_content():
             data.append(chk)
         res = b"".join([s for s in data])
+        res = "<pre>{}</pre>".format(res)
 
     return res
 
@@ -597,7 +598,7 @@ def preview(request, path):
     resource = Resource.find(path)
     if not resource:
         raise Http404
- 
+
     container = Collection.find(resource.container)
     if not container:
         # The container has to be there. If not it may be a network
@@ -611,8 +612,7 @@ def preview(request, path):
                     resource.container
                 ),
             )
-    
-    
+
     paths = []
     full = "/"
     for pth in container.path.split("/"):
@@ -620,14 +620,11 @@ def preview(request, path):
             continue
         full = u"{}{}/".format(full, pth)
         paths.append((pth, full))
-    
-    
-   
+
     data = ""
     if resource.get_mimetype() in PREVIEW_MIMETYPE:
         data = PREVIEW_MIMETYPE.get(resource.get_mimetype())(resource)
-    
-    
+
     ctx = {
         "resource": resource.full_dict(request.user),
         "container": container,
@@ -635,11 +632,8 @@ def preview(request, path):
         "collection_paths": paths,
         "content": data
         }
- 
- 
-    return render(request, 
-                  "archive/resource/preview.html", 
-                  ctx)
+
+    return render(request, "archive/resource/preview.html", ctx)
 
 
 def search(request):
@@ -760,6 +754,6 @@ def view_resource(request, path):
 
 PREVIEW_MIMETYPE = {
     "text/json" : preview_text_json,
-    "text/plain" : preview_text_json,
+    "text/plain" : preview_text_plain,
     "test" : preview_test
 }
