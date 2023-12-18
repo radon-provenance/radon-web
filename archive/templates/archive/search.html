@@ -10,11 +10,14 @@
 <hr/>
 
 
+<div class="collection-entry row">
 {% for c in results%}
+
+	
     {% if c.result_type == 'Collection' %}
         {% include "archive/collection/collection_entry_search.html" with collection=c %}
     {% endif %}
-
+ 
     {% if c.result_type == 'Resource' %}
         {% include "archive/resource/resource_entry_search.html" with resource=c %}
     {% endif %}
@@ -24,6 +27,8 @@
         <h2>No results were found for '{{q}}'</h2>
     {% endif %}
 {% endfor %}
+
+</div>
 
 {% endblock main_content %}
 

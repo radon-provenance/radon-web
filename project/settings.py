@@ -112,6 +112,9 @@ DATABASES = {
     }
 }
 
+AUTH_LDAP_SERVER_URI = None
+AUTH_LDAP_USER_DN_TEMPLATE = None
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -174,4 +177,6 @@ REST_FRAMEWORK = {
 #     ]
 }
 
+AUTH_LDAP_SERVER_URI = None
+AUTH_LDAP_USER_DN_TEMPLATE = None
 

@@ -32,16 +32,28 @@ from archive.forms import (
     ResourceForm,
     ResourceNewForm,
 )
- 
-from radon.model import (
-    Collection, 
-    Group,
-    Notification,
-    Resource,
-    Search
+from radon.model.collection import Collection
+from radon.model.group import Group
+from radon.model.notification import (
+    create_request_collection,
+    create_request_resource,
+    delete_request_collection,
+    delete_request_resource,
+    update_request_collection,
+    update_request_resource,
 )
+from radon.model.payload import (
+    PayloadCreateRequestCollection,
+    PayloadCreateRequestResource,
+    PayloadDeleteRequestCollection,
+    PayloadDeleteRequestResource,
+    PayloadUpdateRequestCollection,
+    PayloadUpdateRequestResource,
+)
+
+from radon.model.resource import Resource
+from radon.model.search import Search
 from radon.model.errors import (
-    CollectionConflictError,
     ResourceConflictError
 )
 from radon.util import merge
@@ -64,21 +76,9 @@ def delete_collection(request, path):
         raise PermissionDenied
  
     if request.method == "POST":
-        obj = {
-            "name": coll.name,
-            "container": coll.container,
-            
-        }
-        
-        payload = {
-            "obj": obj,
-            "meta": {
-                "sender": request.user.login
-            }
-        }
-        
-        Notification.delete_request_collection(payload)
-            
+        delete_request_collection(
+            PayloadDeleteRequestCollection.default(coll.path, request.user.login))
+
         messages.add_message(
             request, messages.INFO, "Request for deletion of collection '{}' sent".format(coll.name)
         )
@@ -107,20 +107,9 @@ def delete_resource(request, path):
  
     container = Collection.find(resc.container)
     if request.method == "POST":
-        obj = {
-            "name": resc.name,
-            "container": resc.container,
-        }
-        
-        payload = {
-            "obj": obj,
-            "meta": {
-                "sender": request.user.login
-            }
-        }
-        
-        Notification.delete_request_resource(payload)
-            
+        delete_request_resource(
+            PayloadDeleteRequestResource.default(resc.path, request.user.login))
+
         messages.add_message(
             request, messages.INFO, "Request for deletion of resource '{}' sent".format(resc.name)
         )
@@ -247,12 +236,12 @@ def edit_collection(request, path):
                         metadata[k] = [metadata[k], v]
                 else:
                     metadata[k] = v
- 
+
             data = form.cleaned_data
-            payload = {
+
+            payload_json = {
                 "obj": {
-                    "name" : coll.name,
-                    "container": coll.container,
+                    "path": coll.path,
                     "metadata": metadata,
                     "read_access": data["read_access"],
                     "write_access": data["write_access"]
@@ -261,7 +250,9 @@ def edit_collection(request, path):
                     "sender": request.user.login,
                 }
             }
-            Notification.update_request_collection(payload)
+
+            update_request_collection(PayloadUpdateRequestCollection(payload_json))
+
             messages.add_message(
                 request,
                 messages.INFO,
@@ -320,19 +311,16 @@ def edit_resource(request, path):
 
             data = form.cleaned_data
            
-            payload = {
+            payload_json = {
                 "obj": {
-                    "name" : resc.name,
-                    "container": resc.container,
+                    "path": resc.path,
                     "metadata": metadata,
                     "read_access": data["read_access"],
                     "write_access": data["write_access"]
                 },
-                "meta": {
-                    "sender": request.user.login,
-                }
+                "meta": {"sender": request.user.login}
             }
-            Notification.update_request_resource(payload)
+            update_request_resource(PayloadUpdateRequestResource(payload_json))
             messages.add_message(
                 request,
                 messages.INFO,
@@ -419,20 +407,19 @@ def new_collection(request, parent):
                     else:
                         metadata[k] = v
                 
-                payload = {
+                payload_json = {
                     "obj": {
                         "name" : name,
                         "container": parent,
+                        "path": path,
                         "metadata": metadata,
                         "read_access": data["read_access"],
                         "write_access": data["write_access"]
                     },
-                    "meta": {
-                        "sender": request.user.login,
-                    }
+                    "meta": {"sender": request.user.login}
                 }
                 
-                Notification.create_request_collection(payload)
+                create_request_collection(PayloadCreateRequestCollection(payload_json))
 
                 
                 messages.add_message(
@@ -515,10 +502,11 @@ def new_resource(request, parent):
                 else:
                     metadata[k] = v
 
-            payload = {
+            payload_json = {
                 "obj": {
                     "name" : name,
                     "container": parent_collection.path,
+                    "path": path, 
                     "metadata": metadata,
                     "mimetype": data["file"].content_type,
                     "size": data["file"].size,
@@ -530,7 +518,7 @@ def new_resource(request, parent):
                 }
             }
             
-            Notification.create_request_resource(payload)
+            create_request_resource(PayloadCreateRequestResource(payload_json))
 
             
             messages.add_message(

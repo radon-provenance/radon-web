@@ -21,8 +21,10 @@ from settings.forms import (
     AddIndexFieldForm
 )
 
-from radon.model import Config
-from radon import cfg
+from radon.model.config import (
+    cfg,
+    Config
+)
 from radon.database import (
     add_search_field,
     rm_search_field

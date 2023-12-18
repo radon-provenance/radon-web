@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from django.apps import AppConfig
-from radon.model import Collection
+from radon.model.collection import Collection
 from radon.database import initialise
 
 

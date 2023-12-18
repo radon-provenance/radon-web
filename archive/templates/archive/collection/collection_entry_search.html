@@ -1,22 +1,20 @@
-
+{% load bootstrap_icons %}
 <div class="collection-entry row">
 
     <div class="col-md-12">
       {% if collection.can_delete %}
         <a href="{% url 'archive:delete_collection' path=collection.path %}">
-        <i class="blue-icon glyphicon glyphicon glyphicon-remove-circle"></i>
-        &nbsp;&nbsp;
-        </a>
+		{% bs_icon 'x-circle' color='#428bca' %}
+        </a>&nbsp;
       {% endif %}
       {% if collection.can_read %}
-      <i class="blue-icon glyphicon glyphicon-folder-open"></i>
-      &nbsp;&nbsp;
+      {% bs_icon 'folder-fill' color='#428bca' %}&nbsp;
       <a href="{% url 'archive:view' path=collection.path %}">
           {{ collection.path }}
       </a>
       {% else %}
         <span style="color: #999;">
-        <i class="gray-icon glyphicon glyphicon glyphicon-folder-close"></i>&nbsp;&nbsp;
+        {% bs_icon 'folder-fill' color='#428bca' %}&nbsp;
           {{ collection.path }}
         </span>
       {% endif %}

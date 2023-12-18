@@ -23,14 +23,18 @@ from groups.forms import (
     GroupForm,
     GroupAddForm
 )
-from radon.model import (
-    Group,
-    Notification,
-    User
+from radon.model.group import Group
+from radon.model.notification import (
+    create_request_group,
+    delete_request_group,
+    update_request_group
 )
-from radon.model.errors import GroupConflictError
-from radon.util import payload_check
-from pip._vendor.pygments.unistring import Lm
+from radon.model.payload import (
+    PayloadCreateRequestGroup,
+    PayloadDeleteRequestGroup,
+    PayloadUpdateRequestGroup,
+)
+from radon.model.user import User
 
 
 GROUP_HOME = "groups:home"
@@ -51,19 +55,16 @@ def add_user(request, name):
         if form.is_valid():
             data = form.cleaned_data
 
-            payload = {
+            payload_json = {
                 "obj": {
                     "name": name,
                     "members": data.get("users", [])
                 }, 
-                "meta": {
-                    "sender": request.user.login
-                }
+                "meta": {"sender": request.user.login}
             }
-            
-            
-            Notification.update_request_group(payload)
-                
+
+            update_request_group(PayloadUpdateRequestGroup(payload_json))
+
             messages.add_message(
                 request,
                 messages.INFO,
@@ -87,16 +88,12 @@ def delete_group(request, name):
     if not request.user.administrator:
         raise PermissionDenied
     if request.method == "POST":
-        obj = {"name": group.name}
-        
-        payload = {
-            "obj": obj,
-            "meta": {
-                "sender": request.user.login
-            }
+        payload_json = {
+            "obj": {"name": group.name},
+            "meta": {"sender": request.user.login}
         }
         
-        Notification.delete_request_group(payload)
+        delete_request_group(PayloadDeleteRequestGroup(payload_json))
             
         messages.add_message(
             request, messages.INFO, "Request for deletion of group '{}' sent".format(group.name)
@@ -183,15 +180,11 @@ def new_group(request):
                 )
                 return render(request, URL_GROUP_NEW, { 'form': form })
               
-            payload = {
-                "obj": {
-                    "name": groupname,
-                },
-                "meta": {
-                    "sender": request.user.login
-                }
+            payload_json = {
+                "obj": {"name": groupname,},
+                "meta": {"sender": request.user.login}
             }
-            Notification.create_request_group(payload)
+            create_request_group(PayloadCreateRequestGroup(payload_json))
                 
             messages.add_message(
                 request,
@@ -221,16 +214,14 @@ def rm_user(request, name, uname):
         lm = group.get_members()
         lm.remove(uname)
         
-        payload = {
+        payload_json = {
             "obj": {
                 "name": name,
                 "members": lm
             }, 
-            "meta": {
-                "sender": request.user.login
-            }
+            "meta": {"sender": request.user.login}
         }
-        Notification.update_request_group(payload)
+        update_request_group(PayloadUpdateRequestGroup(payload_json))
             
         messages.add_message(
             request,

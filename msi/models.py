@@ -1,16 +1,51 @@
 from django.db import models
 
-
-from radon.model import (
-    Collection, 
-    Group,
-    Resource,
-    User
-)
-import radon
+from radon.model.config import cfg
+from radon.model.collection import Collection
+from radon.model.group import Group
+from radon.model.resource import Resource
+from radon.model.user import User
 from radon.model.notification import (
-    Notification
+    create_fail_collection,
+    create_fail_resource,
+    create_fail_group,
+    create_fail_user,
+    delete_fail_collection,
+    delete_fail_resource,
+    delete_fail_group,
+    delete_fail_user,
+    update_fail_collection,
+    update_fail_resource,
+    update_fail_group,
+    update_fail_user,
 )
+from radon.model.payload import (
+    PayloadCreateRequestCollection,
+    PayloadCreateFailCollection,
+    PayloadCreateRequestResource,
+    PayloadCreateFailResource,
+    PayloadCreateRequestGroup,
+    PayloadCreateFailGroup,
+    PayloadCreateRequestUser,
+    PayloadCreateFailUser,
+    PayloadDeleteRequestCollection,
+    PayloadDeleteFailCollection,
+    PayloadDeleteRequestResource,
+    PayloadDeleteFailResource,
+    PayloadDeleteRequestGroup,
+    PayloadDeleteFailGroup,
+    PayloadDeleteRequestUser,
+    PayloadDeleteFailUser,
+    PayloadUpdateRequestCollection,
+    PayloadUpdateFailCollection,
+    PayloadUpdateRequestResource,
+    PayloadUpdateFailResource,
+    PayloadUpdateRequestGroup,
+    PayloadUpdateFailGroup,
+    PayloadUpdateRequestUser,
+    PayloadUpdateFailUser,
+)
+from radon.model.microservices import Microservices
 from radon.util import (
     merge,
     payload_check
@@ -32,62 +67,40 @@ def msi_test(params):
     return { "out" : msg * 2}
 
 
-def msi_create_collection(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_NAME, payload):
-        missing.append("name")
-    if not payload_check(P_OBJ_CONTAINER, payload):
-        missing.append("container")
-    if missing:
-        msg = MSG_INFO_MISSING.format("collection", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.create_fail_collection(payload)
+def msi_create_collection(payload_json):
+    payload = PayloadCreateRequestCollection(payload_json)
+    
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadCreateFailCollection.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        create_fail_collection(payload)
         return { "err": True, "msg" : msg}
     
-    obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.create_fail_collection(payload)
-        return { "err": True, "msg" : msg}
-        
+    obj = payload_check("/obj", payload_json)
     coll = Collection.create(**obj)
-    
+     
     if coll:
         return { "err": False, "msg" : "Collection created"}
     else:
         return { "err": True, "msg" : "Collection not created"}
 
 
-def msi_create_resource(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_NAME, payload):
-        missing.append("name")
-    if not payload_check(P_OBJ_CONTAINER, payload):
-        missing.append("container")
-    if missing:
-        msg = MSG_INFO_MISSING.format("resource", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.create_fail_resource(payload)
-        return { "err": True, "msg" : msg}
+def msi_create_resource(payload_json):
+    payload = PayloadCreateRequestResource(payload_json)
     
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadCreateFailResource.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        create_fail_resource(payload)
+        return { "err": True, "msg" : msg}
+
     obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.create_fail_resource(payload)
-        return { "err": True, "msg" : msg}
-    
     resc = Resource.create(**obj)
     
     if resc:
@@ -96,97 +109,51 @@ def msi_create_resource(payload):
         return { "err": True, "msg" : "Resource not created"}
 
 
-def msi_create_group(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_NAME, payload):
-        missing.append("name")
-    if missing:
-        msg = MSG_INFO_MISSING.format("group", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.create_fail_group(payload)
-        return { "err": True, "msg" : msg}
+def msi_create_group(payload_json):
+    payload = PayloadCreateRequestGroup(payload_json)
     
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadCreateFailGroup.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        create_fail_group(payload)
+        return { "err": True, "msg" : msg}
+
     obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.create_fail_group(payload)
-        return { "err": True, "msg" : msg}
-    
     group = Group.create(**obj)
-    
+
     if group:
         return { "err": False, "msg" : "Group created"}
     else:
         return { "err": True, "msg" : "Group not created"}
 
 
-def msi_create_user(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_LOGIN, payload):
-        missing.append("login")
-    if not payload_check("/obj/password", payload):
-        missing.append("password")
-    if missing:
-        msg = MSG_INFO_MISSING.format("user", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.create_fail_user(payload)
-        return { "err": True, "msg" : msg}
-    
-    obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.create_fail_user(payload)
-        return { "err": True, "msg" : msg}
-    
-    user = User.create(**obj)
-    
+def msi_create_user(payload_json):
+    user, msg = Microservices.create_user(PayloadCreateRequestUser(payload_json))
     if user:
-        return { "err": False, "msg" : "User created"}
+        return { "err": False, "msg" : msg}
     else:
-        return { "err": True, "msg" : "User not created"}
+        return { "err": True, "msg" : "User not created - " + msg}
 
 
-def msi_delete_collection(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_NAME, payload):
-        missing.append("name")
-    if not payload_check(P_OBJ_CONTAINER, payload):
-        missing.append("container")
-    if missing:
-        msg = MSG_INFO_MISSING.format("collection", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.delete_fail_collection(payload)
-        return { "err": True, "msg" : msg}
+def msi_delete_collection(payload_json):
+    payload = PayloadDeleteRequestCollection(payload_json)
     
-    obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.delete_fail_collection(payload)
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadDeleteFailCollection.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        delete_fail_collection(payload_json)
         return { "err": True, "msg" : msg}
-    
-    coll = Collection.find(merge(payload_check(P_OBJ_CONTAINER, payload),
-                                 payload_check(P_OBJ_NAME, payload)))
+
+    coll = Collection.find(payload.get_object_key())
     if coll:
         params = {}
-        params['sender'] = payload_check(P_META_SENDER, payload, radon.cfg.sys_lib_user)
+        params['sender'] = payload_check(P_META_SENDER, payload, cfg.sys_lib_user)
 
         coll.delete(**params)
         
@@ -195,33 +162,23 @@ def msi_delete_collection(payload):
         return { "err": True, "msg" : "Collection not deleted"}
 
 
-def msi_delete_group(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_NAME, payload):
-        missing.append("name")
-    if missing:
-        msg = MSG_INFO_MISSING.format("group", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.delete_fail_group(payload)
-        return { "err": True, "msg" : msg}
+def msi_delete_group(payload_json):
+    payload = PayloadDeleteRequestGroup(payload_json)
     
-    obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.delete_fail_group(payload)
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadDeleteFailGroup.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        delete_fail_group(payload_json)
         return { "err": True, "msg" : msg}
-    
-    group = Group.find(payload_check(P_OBJ_NAME, payload))
+
+    group = Group.find(payload.get_object_key())
     
     if group:
         params = {}
-        params['sender'] = payload_check(P_META_SENDER, payload, radon.cfg.sys_lib_user)
+        params['sender'] = payload_check(P_META_SENDER, payload, cfg.sys_lib_user)
 
         group.delete(**params)
          
@@ -230,35 +187,22 @@ def msi_delete_group(payload):
         return { "err": True, "msg" : "Group not deleted"}
 
 
-def msi_delete_resource(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_NAME, payload):
-        missing.append("name")
-    if not payload_check(P_OBJ_CONTAINER, payload):
-        missing.append("container")
-    if missing:
-        msg = MSG_INFO_MISSING.format("resource", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.delete_fail_resource(payload)
+def msi_delete_resource(payload_json):
+    payload = PayloadDeleteRequestResource(payload_json)
+    
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadDeleteFailResource.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        delete_fail_resource(payload_json)
         return { "err": True, "msg" : msg}
     
-    obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.delete_fail_resource(payload)
-        return { "err": True, "msg" : msg}
-    
-    resc = Resource.find(merge(payload_check(P_OBJ_CONTAINER, payload),
-                               payload_check(P_OBJ_NAME, payload)))
+    resc = Resource.find(payload.get_object_key())
     if resc:
         params = {}
-        params['sender'] = payload_check(P_META_SENDER, payload, radon.cfg.sys_lib_user)
+        params['sender'] = payload_check(P_META_SENDER, payload, cfg.sys_lib_user)
 
         resc.delete(**params)
         
@@ -267,32 +211,22 @@ def msi_delete_resource(payload):
         return { "err": True, "msg" : "Collection not deleted"}
 
 
-def msi_delete_user(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_LOGIN, payload):
-        missing.append("login")
-    if missing:
-        msg = MSG_INFO_MISSING.format("user", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.delete_fail_user(payload)
+def msi_delete_user(payload_json):
+    payload = PayloadDeleteRequestUser(payload_json)
+    
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadDeleteFailUser.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        delete_fail_user(payload_json)
         return { "err": True, "msg" : msg}
     
-    obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.delete_fail_user(payload)
-        return { "err": True, "msg" : msg}
-    
-    user = User.find(payload_check(P_OBJ_LOGIN, payload))
+    user = User.find(payload.get_object_key())
     if user:
         params = {}
-        params['sender'] = payload_check(P_META_SENDER, payload, radon.cfg.sys_lib_user)
+        params['sender'] = payload_check(P_META_SENDER, payload, cfg.sys_lib_user)
 
         user.delete(**params)
          
@@ -301,32 +235,20 @@ def msi_delete_user(payload):
         return { "err": True, "msg" : "User not deleter"}
 
 
-def msi_update_collection(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_NAME, payload):
-        missing.append("name")
-    if not payload_check(P_OBJ_CONTAINER, payload):
-        missing.append("container")
-    if missing:
-        msg = MSG_INFO_MISSING.format("collection", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.update_fail_collection(payload)
+def msi_update_collection(payload_json):
+    payload = PayloadUpdateRequestCollection(payload_json)
+    
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadUpdateFailCollection.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        update_fail_collection(payload_json)
         return { "err": True, "msg" : msg}
     
     obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.update_fail_collection(payload)
-        return { "err": True, "msg" : msg}
-    
-    coll = Collection.find(merge(payload_check(P_OBJ_CONTAINER, payload),
-                                 payload_check(P_OBJ_NAME, payload)))
+    coll = Collection.find(obj.path)
     if coll:
         params = {}
         metadata = payload_check("/obj/metadata", payload, None)
@@ -339,7 +261,7 @@ def msi_update_collection(payload):
         if write_access != None:
             params['write_access'] = write_access
             
-        params['sender'] = payload_check(P_META_SENDER, payload, radon.cfg.sys_lib_user)
+        params['sender'] = payload_check(P_META_SENDER, payload, cfg.sys_lib_user)
 
         coll.update(**params)
     
@@ -348,32 +270,20 @@ def msi_update_collection(payload):
         return { "err": True, "msg" : "Collection not updated"}
 
 
-def msi_update_resource(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_NAME, payload):
-        missing.append("name")
-    if not payload_check(P_OBJ_CONTAINER, payload):
-        missing.append("container")
-    if missing:
-        msg = MSG_INFO_MISSING.format("resource", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.update_fail_resource(payload)
+def msi_update_resource(payload_json):
+    payload = PayloadUpdateRequestResource(payload_json)
+    
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadUpdateFailResource.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        update_fail_resource(payload_json)
         return { "err": True, "msg" : msg}
     
     obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.update_fail_resource(payload)
-        return { "err": True, "msg" : msg}
-    
-    resc = Resource.find(merge(payload_check(P_OBJ_CONTAINER, payload),
-                               payload_check(P_OBJ_NAME, payload)))
+    resc = Resource.find(obj.path)
     if resc:
         params = {}
         metadata = payload_check("/obj/metadata", payload, None)
@@ -386,7 +296,7 @@ def msi_update_resource(payload):
         if write_access != None:
             params['write_access'] = write_access
             
-        params['sender'] = payload_check(P_META_SENDER, payload, radon.cfg.sys_lib_user)
+        params['sender'] = payload_check(P_META_SENDER, payload, cfg.sys_lib_user)
 
         resc.update(**params)
     
@@ -395,30 +305,20 @@ def msi_update_resource(payload):
         return { "err": True, "msg" : "Resource not updated"}
 
 
-def msi_update_user(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_LOGIN, payload):
-        missing.append("login")
-    if missing:
-        msg = MSG_INFO_MISSING.format("user", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.update_fail_user(payload)
+def msi_update_user(payload_json):
+    payload = PayloadUpdateRequestUser(payload_json)
+    
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadUpdateFailUser.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        update_fail_user(payload_json)
         return { "err": True, "msg" : msg}
     
     obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.update_fail_user(payload)
-        return { "err": True, "msg" : msg}
-    
-    
-    user = User.find(payload_check(P_OBJ_LOGIN, payload))
+    user = User.find(obj.login)
     if user:
         params = {}
         email = payload_check("/obj/email", payload)
@@ -440,7 +340,7 @@ def msi_update_user(payload):
         if password:
             params['password'] = password
         
-        params['sender'] = payload_check(P_META_SENDER, payload, radon.cfg.sys_lib_user)
+        params['sender'] = payload_check(P_META_SENDER, payload, cfg.sys_lib_user)
 
         user.update(**params)
          
@@ -449,34 +349,25 @@ def msi_update_user(payload):
         return { "err": True, "msg" : "User not updated"}
 
 
-def msi_update_group(payload):
-    if "meta" not in payload:
-        payload['meta'] = {}
-    sender = payload_check(P_META_SENDER, payload)
-    if not sender:
-        payload['meta']['sender'] = radon.cfg.sys_lib_user
-    missing = []
-    if not payload_check(P_OBJ_NAME, payload):
-        missing.append("name")
-    if missing:
-        msg = MSG_INFO_MISSING.format("group", ", ".join(missing))
-        payload['meta']['msg'] = msg
-        Notification.update_fail_group(payload)
+def msi_update_group(payload_json):
+    payload = PayloadUpdateRequestGroup(payload_json)
+    
+    (is_valid, msg) = payload.validate()
+    if not is_valid: # Create valid payload
+        payload = PayloadUpdateFailgroup.default(
+            payload.get_object_key(),
+            msg,
+            payload.get_sender())
+        update_fail_group(payload_json)
         return { "err": True, "msg" : msg}
     
     obj = payload_check("/obj", payload)
-    if not obj:
-        msg = MSG_MISSING_OBJ
-        payload['meta']['msg'] = msg
-        Notification.update_fail_group(payload)
-        return { "err": True, "msg" : msg}
-    
-    group = Group.find(payload_check(P_OBJ_NAME, payload))
+    group = Group.find(obj.name)
     
     if group:
         params = {}
         params['members'] =  payload_check("/obj/members", payload, group.get_members())
-        params['sender'] = payload_check(P_META_SENDER, payload, radon.cfg.sys_lib_user)
+        params['sender'] = payload_check(P_META_SENDER, payload, cfg.sys_lib_user)
 
         group.update(**params)
          

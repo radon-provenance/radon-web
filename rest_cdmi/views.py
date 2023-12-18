@@ -49,13 +49,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_cdmi.capabilities import SYSTEM_CAPABILITIES
 from rest_cdmi.storage import CDMIDataAccessObject
 from rest_cdmi.models import CDMIContainer, CDMIResource
-from radon.model import (
-    Collection,
-    DataObject,
-    Resource,
-    User
-)
-from radon import cfg
+from radon.model.collection import Collection
+from radon.model.data_object import DataObject
+from radon.model.resource import Resource
+from radon.model.user import User
+from radon.model.config import cfg
 from radon.util import (
     mk_cassandra_url,
     path_exists,

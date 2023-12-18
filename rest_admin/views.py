@@ -36,8 +36,8 @@ from rest_framework.status import (
 
 from project.custom import CassandraAuthentication
 
-from radon.model import Group
-from radon.model import User
+from radon.model.group import Group
+from radon.model.user import User
 
 
 MSG_LACK_AUTHORIZATION = "User lack authorization"

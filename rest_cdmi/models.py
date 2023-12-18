@@ -14,7 +14,7 @@
 
 import mimetypes
 
-from radon.model import Collection
+from radon.model.collection import Collection
 
 
 class CDMIContainer():

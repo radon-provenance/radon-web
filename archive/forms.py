@@ -14,7 +14,7 @@
 
 
 from django import forms
-from radon.model import Group
+from radon.model.group import Group
 
 from archive.widgets import JsonPairInputs
 

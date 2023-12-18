@@ -15,7 +15,7 @@
 
 from django import forms
 
-from radon import cfg
+from radon.model.config import cfg
 
 
 class AddIndexFieldForm(forms.Form):

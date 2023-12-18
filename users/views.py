@@ -20,12 +20,19 @@ from django.http import Http404
 from django.contrib import messages
 
 from users.forms import UserForm
-from radon.model import (
-    Group,
-    Notification,
-    User
-)
+from radon.model.group import Group
+from radon.model.user import User
 from radon.model.errors import UserConflictError
+from radon.model.payload import (
+    PayloadCreateRequestUser,
+    PayloadDeleteRequestUser,
+    PayloadUpdateRequestUser
+)
+from radon.model.notification import (
+    create_request_user,
+    delete_request_user,
+    update_request_user
+)
 
 
 USERS_HOME = "users:home"
@@ -43,16 +50,12 @@ def delete_user(request, login):
         raise PermissionDenied
  
     if request.method == "POST":
-        obj = {"login": user.login}
-        
-        payload = {
-            "obj": obj,
-            "meta": {
-                "sender": request.user.login
-            }
+        payload_json = {
+            "obj": {"login": user.login},
+            "meta": {"sender": request.user.login}
         }
         
-        Notification.delete_request_user(payload)
+        delete_request_user(PayloadDeleteRequestUser(payload_json))
             
         messages.add_message(
             request, messages.INFO, "Request for deletion of user '{}' sent".format(login)
@@ -99,14 +102,12 @@ def edit_user(request, login):
                 obj["fullname"] = data["fullname"]
             
             
-            payload = {
+            payload_json = {
                 "obj": obj,
-                "meta": {
-                    "sender": request.user.login
-                }
+                "meta": {"sender": request.user.login}
             }
             
-            Notification.update_request_user(payload)
+            update_request_user(PayloadUpdateRequestUser(payload_json))
             messages.add_message(
                 request, messages.INFO, "User '{}' has been updated".format(user.login)
             )
@@ -182,13 +183,11 @@ def new_user(request):
             obj["ldap"] = data.get("ldap", False)
             
             
-            payload = {
+            payload_json = {
                 "obj": obj,
-                "meta": {
-                    "sender": request.user.login
-                }
+                "meta": {"sender": request.user.login}
             }
-            Notification.create_request_user(payload)
+            create_request_user(PayloadCreateRequestUser(payload_json))
             
             messages.add_message(
                 request,

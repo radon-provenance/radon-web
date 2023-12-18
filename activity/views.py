@@ -23,14 +23,11 @@ from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
 )
-    
-from radon.model import (
-    Collection,
-    Group,
-    Notification,
-    Resource,
-    User
-)
+from radon.model.collection import Collection
+from radon.model.group import Group
+from radon.model.notification import Notification
+from radon.model.resource import Resource
+from radon.model.user import User
 from radon.model.notification import (
     OP_CREATE,
     OP_DELETE,

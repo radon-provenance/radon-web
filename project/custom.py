@@ -23,7 +23,7 @@ from rest_framework.authentication import (
     exceptions
 )
 
-from radon.model import User
+from radon.model.user import User
 
 
 class CassandraMiddleware(MiddlewareMixin):
@@ -79,10 +79,10 @@ class CassandraAuthentication(BasicAuthentication):
         """
         cass_user = User.find(userid)
         if cass_user is None or not cass_user.is_active():
-            raise exceptions.AuthenticationFailed(_("User inactive or deleted."))
+            raise exceptions.AuthenticationFailed("User inactive or deleted.")
         if not cass_user.authenticate(password) and not ldap_authenticate(
             cass_user.uuid, password
         ):
-            raise exceptions.AuthenticationFailed(_("Invalid username/password."))
+            raise exceptions.AuthenticationFailed("Invalid username/password.")
         return (cass_user, None)
     
