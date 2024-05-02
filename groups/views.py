@@ -1,4 +1,4 @@
-# Copyright 2021
+# Radon Copyright 2021, University of Oxford
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,14 +25,15 @@ from groups.forms import (
 )
 from radon.model.group import Group
 from radon.model.notification import (
-    create_request_group,
-    delete_request_group,
-    update_request_group
+    create_group_request,
+    delete_group_request,
+    update_group_request,
+    wait_response,
 )
 from radon.model.payload import (
-    PayloadCreateRequestGroup,
-    PayloadDeleteRequestGroup,
-    PayloadUpdateRequestGroup,
+    PayloadCreateGroupRequest,
+    PayloadDeleteGroupRequest,
+    PayloadUpdateGroupRequest,
 )
 from radon.model.user import User
 
@@ -63,13 +64,18 @@ def add_user(request, name):
                 "meta": {"sender": request.user.login}
             }
 
-            update_request_group(PayloadUpdateRequestGroup(payload_json))
+            notif = update_group_request(PayloadUpdateGroupRequest(payload_json))
+            resp = wait_response(notif.req_id)
 
-            messages.add_message(
-                request,
-                messages.INFO,
-                "Modification of group '{}' has been requested".format(name),
-            )
+            if resp == 0:
+                msg = "Group '{}' has been updated".format(group.name)
+            elif resp == 1:
+                msg = "Modification of group'{}' has failed".format(group.name)
+            else:
+                msg = "Modification of group '{}' is still pending".format(group.name)
+                
+            messages.add_message(request, messages.INFO, msg)
+            
             return redirect("groups:view", name=name)
  
     else:
@@ -93,11 +99,19 @@ def delete_group(request, name):
             "meta": {"sender": request.user.login}
         }
         
-        delete_request_group(PayloadDeleteRequestGroup(payload_json))
-            
-        messages.add_message(
-            request, messages.INFO, "Request for deletion of group '{}' sent".format(group.name)
-        )
+        notif = delete_group_request(PayloadDeleteGroupRequest(payload_json))
+
+        resp = wait_response(notif.req_id)
+
+        if resp == 0:
+            msg = "Group '{}' has been deleted".format(group.name)
+        elif resp == 1:
+            msg = "Deletion of group '{}' has failed".format(group.name)
+        else:
+            msg = "Deletion of group '{}' is still pending".format(group.name)
+        
+        messages.add_message(request, messages.INFO, msg)
+        
         return redirect(GROUP_HOME)
 
     ctx = {
@@ -120,7 +134,27 @@ def edit_group(request, name):
         form = GroupForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            group.update(name=data["name"], sender=request.user.login)
+            payload_json = {
+                "obj": {
+                    "name": group.name,
+                    "members": data.get("users", [])
+                },
+                "meta": {
+                    "sender": request.user.login
+                }
+            }
+            notif = update_group_request(PayloadUpdateGroupRequest(payload_json))
+            resp = wait_response(notif.req_id)
+
+            if resp == 0:
+                msg = "Group '{}' has been updated".format(group.name)
+            elif resp == 1:
+                msg = "Modification of group'{}' has failed".format(group.name)
+            else:
+                msg = "Modification of group '{}' is still pending".format(group.name)
+                
+            messages.add_message(request, messages.INFO, msg)
+            
             return redirect(GROUP_HOME)
     else:
         initial_data = {"name": group.name}
@@ -179,18 +213,23 @@ def new_group(request):
                     "Group '{}' already exists".format(groupname),
                 )
                 return render(request, URL_GROUP_NEW, { 'form': form })
-              
+            
             payload_json = {
                 "obj": {"name": groupname,},
                 "meta": {"sender": request.user.login}
             }
-            create_request_group(PayloadCreateRequestGroup(payload_json))
+            notif = create_group_request(PayloadCreateGroupRequest(payload_json))
+
+            resp = wait_response(notif.req_id)
+
+            if resp == 0:
+                msg = "Group '{}' has been created".format(groupname)
+            elif resp == 1:
+                msg = "Creation of group'{}' has failed".format(groupname)
+            else:
+                msg = "Creation of group '{}' is still pending".format(groupname)
                 
-            messages.add_message(
-                request,
-                messages.INFO,
-                "Creation of group '{}' has been requested".format(groupname),
-            )
+            messages.add_message(request, messages.INFO, msg)
             return redirect(GROUP_HOME)
         else:
             return render(request, URL_GROUP_NEW, { 'form': form })
@@ -221,13 +260,19 @@ def rm_user(request, name, uname):
             }, 
             "meta": {"sender": request.user.login}
         }
-        update_request_group(PayloadUpdateRequestGroup(payload_json))
+        
+        notif = update_group_request(PayloadUpdateGroupRequest(payload_json))
+        resp = wait_response(notif.req_id)
+
+        if resp == 0:
+            msg = "Group '{}' has been updated".format(group.name)
+        elif resp == 1:
+            msg = "Modification of group'{}' has failed".format(group.name)
+        else:
+            msg = "Modification of group '{}' is still pending".format(group.name)
+                
+            messages.add_message(request, messages.INFO, msg)
             
-        messages.add_message(
-            request,
-            messages.INFO,
-            "Removing '{}' from group '{}' has been requested".format(uname, name),
-        )
     else:
         raise Http404
     return redirect("groups:view", name=name)

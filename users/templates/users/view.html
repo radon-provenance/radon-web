@@ -23,19 +23,19 @@
 
 <table class="table table-light table-striped" aria-role="presentation" aria-label="List of user information">
   <tr> 
-    <td>
+    <th scope="col">
       <label class="form-label fw-bold">Full Name</label>
-    </td>
-    <td class="w-75">
+    </th>
+    <th scope="col" class="w-75">
       <label class="form-label">{{ user_obj.fullname }}</label>
     </td>
   </tr>
   
   <tr>
-    <td>
+    <th scope="col">
       <label class="form-label fw-bold">Email</label>
     </td>
-    <td class="w-75">
+    <th scope="col" class="w-75">
       <label class="form-label">{{ user_obj.email|default:"Private" }}</label>
     </td>
   </tr>

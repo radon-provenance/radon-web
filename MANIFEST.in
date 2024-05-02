@@ -1,0 +1,4 @@
+include Dockerfile requirements.txt gunicorn.conf start.sh manage.py 
+recursive-include . *.html
+recursive-include project/static *
+exclude __pycache__

@@ -1,8 +1,9 @@
 
 {% if form.errors %}
-    <div class="alert alert-danger">
+  <div class="alert alert-danger alert-dismissible fade show">
     Please correct the problem in the form below.
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"/>
+  </div>
 {% endif %}
 
 {% if action == 'edit' %}
@@ -17,7 +18,12 @@
     {% if action == 'new' %}
         <div class="form-group {% if form.errors.name %}has-error{% endif %}">
             <label for="name" class="control-label">Name</label>
-            <input type="text" class="form-control" id="name" name="name" value="{{form.name.value|default:''}}"  title="Enter the item name" placeholder="Name of item">
+            <input type="text" class="form-control" 
+                  id="name" 
+                  name="name" 
+                  value="{{form.name.value|default:''}}" 
+                  title="Enter the item name" 
+                  placeholder="Name of item">
         </div>
     {% endif %}
 
@@ -112,11 +118,6 @@ $(document).ready(function(){
             minus.show();
         }
     }
-
-    function update_name() {
-        alert("update");
-    }
-
 
     $("#metadata_fields .form-group").each(function(index, value){
         var that = $(this);

@@ -1,4 +1,4 @@
-# Copyright 2021
+# Radon Copyright 2021, University of Oxford
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,12 +17,10 @@ from django.urls import path
 
 from activity.views import (
     home,
-    notification
 )
 
 app_name = "activity"
 
 urlpatterns = [
     path("", home, name="home"),
-    path("notification", notification, name="notification"),
 ]

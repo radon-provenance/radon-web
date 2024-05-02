@@ -3,10 +3,11 @@
 
     <div class="col-md-12">
       {% if collection.can_delete %}
-        <a href="{% url 'archive:delete_collection' path=collection.path %}">
-		{% bs_icon 'x-circle' color='#428bca' %}
-        </a>&nbsp;
+        <a href="{% url 'archive:delete_collection' path=collection.path %}">{% bs_icon 'x-circle' color='#428bca' %}</a>
+        
       {% endif %}
+      
+      
       {% if collection.can_read %}
       {% bs_icon 'folder-fill' color='#428bca' %}&nbsp;
       <a href="{% url 'archive:view' path=collection.path %}">

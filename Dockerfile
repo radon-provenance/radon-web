@@ -12,12 +12,13 @@ ENV CQLENG_ALLOW_SCHEMA_MANAGEMENT 1
 
 # Install prerequisites
 RUN apt -y update && \
-  apt install -y nano less libldap2-dev libsasl2-dev libssl-dev && \
-  pip install --upgrade pip
+    apt install -y nano less libldap2-dev libsasl2-dev libssl-dev && \
+    pip install --upgrade pip && \
+    apt clean
 
 # Create destination folders
 RUN mkdir -p /code/radon-lib && \
-  mkdir -p /code/radon-web
+    mkdir -p /code/radon-web
 
 # Install radon-lib
 COPY radon-lib /code/radon-lib

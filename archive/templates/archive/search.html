@@ -9,11 +9,9 @@
 {% include "snippets/search_form_full.html" with q=q size="full"%}
 <hr/>
 
-
 <div class="collection-entry row">
 {% for c in results%}
 
-	
     {% if c.result_type == 'Collection' %}
         {% include "archive/collection/collection_entry_search.html" with collection=c %}
     {% endif %}

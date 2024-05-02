@@ -1,4 +1,4 @@
-# Copyright 2022
+# Radon Copyright 2022, University of Oxford
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,19 +29,6 @@ from radon.database import (
     add_search_field,
     rm_search_field
 )
-
-
-@login_required
-def home(request):
-    """Default view for Settings"""
-    
-    indexes = Config.get_search_indexes()    
-    
-    ctx = {
-        "indexes": indexes,
-    }
-   
-    return render(request, "settings/index.html", ctx)
 
 
 @login_required
@@ -77,10 +64,23 @@ def add_index_field(request):
  
     return render(request, "settings/add_index_field.html", ctx)
 
+
+@login_required
+def home(request):
+    """Default view for Settings"""
+    
+    indexes = Config.get_search_indexes()    
+    
+    ctx = {
+        "indexes": indexes,
+    }
+   
+    return render(request, "settings/index.html", ctx)
+
 @login_required
 def rm_index_field(request, field_name):
     """delete_index_field"""
-    rm_search_field(field_name)    
+    rm_search_field(field_name)
     return redirect("settings:home")
     
     

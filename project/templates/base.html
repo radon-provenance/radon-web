@@ -42,20 +42,14 @@
       {% else %}
         <div class="col-10  main">
       {% endif %}
- 
-      {% if messages %}
-          <ul class="list-unstyled">
-            {% for message in messages %}
-              <li class="alert alert-{{ message.tags }} alert-dismissible">
-                {{ message }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </li>
-            {% endfor %}
-          </ul>
-          
-      {% endif %}
+
+      {% for message in messages %}
+        <div class="alert alert-danger alert-dismissible fade show">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"/>
+        </div>
+      {% endfor %}
+      
       
           {% block main_content %}
           {% endblock main_content %}

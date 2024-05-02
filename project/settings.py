@@ -1,4 +1,4 @@
-# Copyright 2021
+# Radon Copyright 2021, University of Oxford
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,16 +25,25 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 from pathlib import Path
+from django.core.management.utils import get_random_secret_key
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'ug59hyc@^zhryxybw6ohpi*ai7$1n-%-(dey@!)x$=8ovurj^8'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not(SECRET_KEY):
+    SECRET_KEY = get_random_secret_key()
+    f = open(".env", "a")
+    f.write("SECRET_KEY={}\n".format(SECRET_KEY))
+    f.close()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

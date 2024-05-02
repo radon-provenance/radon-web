@@ -1,7 +1,7 @@
 {% load bootstrap_icons %}
 
-<div class="row resource-entry">
-  <div class="col">	  
+<div class="row resource-entry py-1">
+  <div class="col">
       {% if resource.can_delete %}
         <a class="coll_item" href="{% url 'archive:delete_resource' path=resource.path %}">
 		{% bs_icon 'x-circle' color='#428bca' %}

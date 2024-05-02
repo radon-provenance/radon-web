@@ -1,20 +1,23 @@
 {% load bootstrap_icons %}
 
-<div class="resource-entry row">
+<div class="resource-entry row py-1">
   <div class="col">
       {% if resource.can_delete %}
-        <a href="{% url 'archive:delete_resource' path=resource.path %}">
-		{% bs_icon 'x-circle' color='#428bca' %}
+        <a class="coll_item" href="{% url 'archive:delete_resource' path=resource.path %}">
+          {% bs_icon 'x-circle' color='#428bca' %}
         </a>
+         &nbsp;
       {% endif %}
       {% if resource.can_read %}
       <span class="badge rounded-pill bg-info">{{resource.type|default:"Unknown"}}</span>
-      <a href="{% url 'archive:resource_view' path=resource.path %}">
+      <a class="coll_item" href="{% url 'archive:resource_view' path=resource.path %}">
         {{ resource.path }}
       </a>
+         &nbsp;
       {% else %}
         <span style="color: #999">
           <span class="badge rounded-pill bg-info">{{resource.type|default:"Unknown"}}</span>
+         &nbsp;
          &nbsp;
         {{ resource.path }}
         </span>
@@ -25,9 +28,8 @@
       {% if resource.can_read %}
       <span class="d-flex justify-content-end">
         <a class="coll_item btn btn-sm btn-success" href="{% url 'archive:download' path=resource.path%}" >
-          Download {% bs_icon 'cloud-arrow-down' color='#fff' %}
-        </a>
-      </span>
+          Download &nbsp;{% bs_icon 'cloud-arrow-down' color='#fff' %}
+        </a></span>
       {% endif %}
   </div>
   

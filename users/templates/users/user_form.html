@@ -1,8 +1,9 @@
 
 {% if form.errors %}
-    <div class="alert alert-danger">
+  <div class="alert alert-danger alert-dismissible fade show">
     Please correct the problem in the form below.
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"/>
+  </div>
 {% endif %}
 
 {% if action == 'edit' %}

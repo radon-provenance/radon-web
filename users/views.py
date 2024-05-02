@@ -1,4 +1,4 @@
-# Copyright 2021
+# Radon Copyright 2021, University of Oxford
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,14 +24,15 @@ from radon.model.group import Group
 from radon.model.user import User
 from radon.model.errors import UserConflictError
 from radon.model.payload import (
-    PayloadCreateRequestUser,
-    PayloadDeleteRequestUser,
-    PayloadUpdateRequestUser
+    PayloadCreateUserRequest,
+    PayloadDeleteUserRequest,
+    PayloadUpdateUserRequest
 )
 from radon.model.notification import (
-    create_request_user,
-    delete_request_user,
-    update_request_user
+    create_user_request,
+    delete_user_request,
+    update_user_request,
+    wait_response,
 )
 
 
@@ -55,11 +56,17 @@ def delete_user(request, login):
             "meta": {"sender": request.user.login}
         }
         
-        delete_request_user(PayloadDeleteRequestUser(payload_json))
-            
-        messages.add_message(
-            request, messages.INFO, "Request for deletion of user '{}' sent".format(login)
-        )
+        notif = delete_user_request(PayloadDeleteUserRequest(payload_json))
+        resp = wait_response(notif.req_id)
+
+        if resp == 0:
+            msg = "User'{}' has been deleted".format(user.login)
+        elif resp == 1:
+            msg = "Deletion of user '{}' has failed".format(user.login)
+        else:
+            msg = "Deletion of user '{}' is still pending".format(user.login)
+        
+        messages.add_message(request, messages.INFO, msg)
         return redirect(USERS_HOME)
 
     # Requires delete on user
@@ -101,16 +108,22 @@ def edit_user(request, login):
             if data["fullname"] != user.fullname:
                 obj["fullname"] = data["fullname"]
             
-            
             payload_json = {
                 "obj": obj,
                 "meta": {"sender": request.user.login}
             }
             
-            update_request_user(PayloadUpdateRequestUser(payload_json))
-            messages.add_message(
-                request, messages.INFO, "User '{}' has been updated".format(user.login)
-            )
+            notif = update_user_request(PayloadUpdateUserRequest(payload_json))
+            resp = wait_response(notif.req_id)
+
+            if resp == 0:
+                msg = "User '{}' has been updated".format(login)
+            elif resp == 1:
+                msg = "Modification of user'{}' has failed".format(login)
+            else:
+                msg = "Modification of user '{}' is still pending".format(login)
+                
+            messages.add_message(request, messages.INFO, msg)
             return redirect(USERS_HOME)
     else:
         initial_data = {
@@ -182,18 +195,23 @@ def new_user(request):
             obj["active"] = data.get("active", True)
             obj["ldap"] = data.get("ldap", False)
             
-            
             payload_json = {
                 "obj": obj,
                 "meta": {"sender": request.user.login}
             }
-            create_request_user(PayloadCreateRequestUser(payload_json))
+            notif = create_user_request(PayloadCreateUserRequest(payload_json))
+
+            resp = wait_response(notif.req_id)
+
+            if resp == 0:
+                msg = "User '{}' has been created".format(login)
+            elif resp == 1:
+                msg = "Creation of user'{}' has failed".format(login)
+            else:
+                msg = "Creation of user '{}' is still pending".format(login)
+                
+            messages.add_message(request, messages.INFO, msg)
             
-            messages.add_message(
-                request,
-                messages.INFO,
-                "Creation of user '{}' has been requested".format(login),
-            )
             return redirect(USERS_HOME)
         else:
             return render(request, URL_USER_NEW, { 'form': form })

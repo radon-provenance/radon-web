@@ -1,4 +1,4 @@
-# Radon Copyright 2021, University of Oxford
+# Radon Copyright 2024, University of Oxford
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.models import AnonymousUser
 
-def home(request):
-    """Main view for the radon web interface"""
-    if (
-        not isinstance(request.user, AnonymousUser)
-        and request.user
-        and request.user.is_authenticated()
-    ):
-        return redirect("archive:home")
-    return render(request, "index.html", {})
+
+
+
+ARCHIVE_VIEW = "archive:view"
+
+URL_DELETE_COLLECTION = "archive/delete.html"
+URL_DELETE_RESOURCE = "archive/resource/delete.html"
+URL_EDIT_COLLECTION = "archive/edit.html"
+URL_EDIT_RESOURCE = "archive/resource/edit.html"
+URL_NEW_COLLECTION = "archive/new.html"
+URL_NEW_RESOURCE = "archive/resource/new.html"
+URL_NEW_REFERENCE = "archive/resource/new_reference.html"
+URL_PREVIEW_RESOURCE = "archive/resource/preview.html"
+URL_VIEW_RESOURCE = "archive/resource/view.html"
