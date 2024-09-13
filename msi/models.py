@@ -141,8 +141,6 @@ def msi_update_user(payload_json):
     ok, _, msg = Microservices.update_user(PayloadUpdateUserRequest(payload_json))
     return {"ok": ok, "msg" : msg}
 
-
-
 MICROSERVICES = {
     "test" : {
         "definition" : {
@@ -327,10 +325,4 @@ MICROSERVICES = {
     
 
 }
-
-
-
-
-
-
 
