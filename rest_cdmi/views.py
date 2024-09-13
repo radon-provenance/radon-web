@@ -534,7 +534,6 @@ class CDMIView(APIView):
             # but omitting the trailing slash at the end of the URI
             # CDMI standards mandates 400 Bad Request response
             return Response(status=HTTP_400_BAD_REQUEST)
-
         try:
             body = self.request.body
             request_body = json.loads(body)
@@ -577,10 +576,11 @@ class CDMIView(APIView):
                     # References cannot be updated so we can't create a new one
                     return Response(status=HTTP_409_CONFLICT)
                 url = request_body.get(value_type[0])
+        else:
+            content = None
 
          # Assemble metadata
         metadata = request_body.get("metadata", {})
-        
         # Check permissions
         if resource:
             # Update Resource, check we can edit it
