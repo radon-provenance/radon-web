@@ -1,7 +1,11 @@
-Django>=3.0,<4.0
-django-gravatar2==1.4.4
-djangorestframework==3.12.4
-django-bootstrap-v5==1.0.11
-django-bootstrap-icons==0.8.3
-gunicorn==22.0.0
-requests==2.31.0
+# Install radon-lib from GitHub
+git+https://github.com/radon-provenance/radon-lib.git@master
+
+django==5.2
+django-bootstrap5==25.1
+django-bootstrap-icons==0.9.0
+django-gravatar2==1.4.5
+djangorestframework==3.16.0
+python-decouple==3.8
+requests==2.32.3
+gunicorn==23.0.0 

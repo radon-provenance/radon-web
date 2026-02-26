@@ -180,7 +180,7 @@ def group_view(request, name):
 
 @login_required
 def home(request):
-    """"Display the main page fro groups (list of clickable groups)"""
+    """"Display the main page for groups (list of clickable groups)"""
     group_objs = list(Group.objects.all())
  
     paginator = Paginator(group_objs, 10)

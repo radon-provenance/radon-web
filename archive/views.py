@@ -49,6 +49,7 @@ from radon.model.group import Group
 from radon.model.notification import (
     create_collection_request,
     create_resource_request,
+    create_resource_success,
     delete_collection_request,
     delete_resource_request,
     update_collection_request,
@@ -58,6 +59,7 @@ from radon.model.notification import (
 from radon.model.payload import (
     PayloadCreateCollectionRequest,
     PayloadCreateResourceRequest,
+    PayloadCreateResourceSuccess,
     PayloadDeleteCollectionRequest,
     PayloadDeleteResourceRequest,
     PayloadUpdateCollectionRequest,
@@ -497,37 +499,33 @@ def new_resource(request, parent):
                 return render(request, URL_NEW_RESOURCE, 
                               {"form": form, "parent": parent_collection, "groups": Group.objects.all()})
 
-            payload_json = {
-                "obj": {
-                    "name" : name,
-                    "container": parent_collection.path,
-                    "path": path, 
-                    "metadata": metadata,
-                    "mimetype": data["file"].content_type,
-                    "size": data["file"].size,
-                    "read_access": data["read_access"],
-                    "write_access": data["write_access"],
-                },
-                "meta": {
-                    "sender": request.user.login,
-                }
+            params = {
+                "name" : name,
+                "container": parent_collection.path,
+                "metadata": metadata,
+                "mimetype": data["file"].content_type,
+                "size": data["file"].size,
+                "read_access": data["read_access"],
+                "write_access": data["write_access"],
             }
             
-            notif = create_resource_request(PayloadCreateResourceRequest(payload_json))
-            resp = wait_response(notif.req_id)
-
-            if resp == 0:
+            resc = Resource.create(**params)
+            if resc:
                 msg = "Resource '{}' has been created".format(path)
-            elif resp == 1:
-                msg = "Creation of resource '{}' has failed".format(path)
+                resc.put(data["file"]) 
+            
+                payload_json = {
+                    "obj": resc.mqtt_get_state(),
+                    'meta' : {
+                        "sender": request.user.login
+                    }
+                }
+                create_resource_success(PayloadCreateResourceSuccess(payload_json))
             else:
-                msg = "Creation of resource '{}' is still pending".format(path)
+                msg = "Creation of resource '{}' has failed".format(path)
                 
             messages.add_message(request, messages.INFO, msg)
-
-            if resp == 0:
-                resource = Resource.find(path)
-                resource.put(data["file"]) 
+            
             return redirect(ARCHIVE_VIEW, path=parent_collection.path)
         else:
             ctx = {"form": form, "container": parent_collection, "groups": Group.objects.all()}
@@ -603,6 +601,10 @@ def preview(request, path):
 def preview_test(resource):
     return "test"
 
+def preview_image(resource):
+    res = '<img width="100%" src="/archive/download' + resource.path + '" />'
+    return res
+    
 
 def preview_text_json(resource):
     res = ""
@@ -751,5 +753,6 @@ def view_resource(request, path):
 PREVIEW_MIMETYPE = {
     "text/json" : preview_text_json,
     "text/plain" : preview_text_plain,
-    "test" : preview_test
+    "image/png" : preview_image,
+    "test" : preview_test,
 }

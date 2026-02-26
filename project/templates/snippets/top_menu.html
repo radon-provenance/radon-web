@@ -33,26 +33,28 @@
       </ul>   
     </div>  
     <ul class="nav navbar-nav ms-auto">
-      {% if not request.user.is_authenticated %}
-        <li class="nav-item"><a href="{% url 'users:auth_login' %}">Login</a></li>
-      {% else %}
-        <li class="nav-item dropdown">
-          <a href="#" class="nav-link dropdown-toggle" role="button" 
-             data-bs-toggle="dropdown" aria-expanded="false">
-            Welcome, {{ request.user.get_fullname|default:request.user.login }}
-            <span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu">
-            {% if user.administrator %}
-            <li><a class="dropdown-item" href="{% url 'users:home' %}">Users</a></li>
-            <li><a class="dropdown-item" href="{% url 'groups:home' %}">Groups</a></li>
-            {% endif %}
-
-            <li><a class="dropdown-item" href="{% url 'activity:home' %}">Activity</a></li>
-            <li class="divider"></li>
-            <li><a class="dropdown-item" href="{% url 'users:auth_logout' %}">Logout</a></li>
-          </ul>
-        </li>
+      {% if dse_connect != False %}
+        {% if not request.user.is_authenticated %}
+          <li class="nav-item"><a href="{% url 'users:auth_login' %}">Login</a></li>
+        {% else %}
+          <li class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" role="button" 
+               data-bs-toggle="dropdown" aria-expanded="false">
+              Welcome, {{ request.user.get_fullname|default:request.user.login }}
+              <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              {% if user.administrator %}
+              <li><a class="dropdown-item" href="{% url 'users:home' %}">Users</a></li>
+              <li><a class="dropdown-item" href="{% url 'groups:home' %}">Groups</a></li>
+              {% endif %}
+  
+              <li><a class="dropdown-item" href="{% url 'activity:home' %}">Activity</a></li>
+              <li class="divider"></li>
+              <li><a class="dropdown-item" href="{% url 'users:auth_logout' %}">Logout</a></li>
+            </ul>
+          </li>
+        {% endif %}
       {% endif %}
     </ul>
   </div>

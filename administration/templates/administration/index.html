@@ -1,0 +1,173 @@
+{% extends "administration/base.html" %}
+
+{% load bootstrap_icons %}
+
+{% block title %}Administration{% endblock title %}
+
+
+{% block content %}
+
+<h1 class="pb-2 text-center">Initial Configuration</h1>
+
+<fieldset class="border border-primary rounded-3 m-5 p-3" >
+
+  <legend class="float-none w-auto px-3">
+    Cassandra Keyspace
+  </legend>
+  
+  <div class="row align-items-center">
+      
+    <div class="col-8">
+      <div class="input-group">
+        <span class="input-group-text">Keyspace name:</span>
+        <input type="text" 
+               class="form-control" 
+               placeholder="KeyspaceName" 
+               readonly
+               value="{{ks_name}}">
+      </div>
+    </div>
+    
+    <div class="col-3 d-grid">
+      <a href="{% url 'administration:create_keyspace' %}"
+         class="btn btn-primary btn-sm {% if ks_ok %}disabled{% endif %}"
+         tabindex="-1"
+         role="button"
+         aria-disabled="true">
+        Create Keyspace
+      </a>
+    </div>
+    
+    <div class="col text-end">
+      {% if ks_ok %}
+        {% bs_icon 'check-circle-fill' color='green' %}
+      {% else %}
+        {% bs_icon 'x-circle-fill' color='red' %}
+      {% endif %}
+    </div>
+    
+  </div>
+  
+</fieldset>
+
+
+<div class="row">
+    
+  <div class="col-8">
+    <fieldset class="border border-primary rounded-3 m-5 p-3" >
+      <legend class="float-none w-auto px-3">
+        Radon Groups
+      </legend>
+      <div>
+        <ul>
+          {% for grp in groups %}
+            <li>
+              {{grp}}
+              <a href="{% url 'administration:rm_group' grp %}">
+                {% bs_icon 'x-circle-fill' color='red' %}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </fieldset>
+  </div>
+  
+  
+  <div class="col align-items-center d-grid m-5">
+
+    <a href="{% url 'administration:create_default_groups' %}"
+       class="btn btn-primary btn-sm"
+       tabindex="-1"
+       role="button"
+       aria-disabled="true">
+      Create Default Groups
+    </a>
+    
+    <form action="{% url 'administration:add_group' %}" method="POST">
+      {% csrf_token %}
+      <div class="input-group">
+        <input type="text" 
+               class="form-control" 
+               aria-label="new group"
+               id="grp_name"
+               name="grp_name"
+               value="newGroup">
+        <button type="button class="btn btn-primary btn-sm">
+          {% bs_icon 'plus-square' %}
+        </button>
+      </div>
+    </form>
+       
+  </div>
+
+</div>
+
+
+<div class="row">
+    
+  <div class="col-8">
+    <fieldset class="border border-primary rounded-3 m-5 p-3" >
+      <legend class="float-none w-auto px-3">
+        Radon Users
+      </legend>
+      <div>
+        <ul>
+          {% for usr in users %}
+            <li>
+              {{usr}}
+              <a href="{% url 'administration:rm_user' usr %}">
+                {% bs_icon 'x-circle-fill' color='red' %}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </fieldset>
+  </div>
+  
+  
+  <div class="col align-items-center d-grid m-5">
+
+    <a href="{% url 'administration:create_default_users' %}"
+       class="btn btn-primary btn-sm"
+       tabindex="-1"
+       role="button"
+       aria-disabled="true">
+      Create Default Users
+    </a>
+    
+    <form action="{% url 'administration:add_user' %}" method="POST">
+      {% csrf_token %}
+      <div class="input-group">
+        <input type="text" 
+               class="form-control" 
+               aria-label="new group"
+               id="usr_name"
+               name="usr_name"
+               value="newUser">
+        <button type="button class="btn btn-primary btn-sm">
+          {% bs_icon 'plus-square' %}
+        </button>
+      </div>
+    </form>
+       
+  </div>
+
+</div>
+
+<div class="row">
+  
+
+    <a href="{% url 'home' %}"
+       class="btn btn-primary btn-sm {% if not ks_ok or not users or not groups %}disabled{% endif %}"
+       tabindex="-1"
+       role="button"
+       aria-disabled="true">
+      Back to the homepage
+    </a>
+</div>
+
+
+
+{% endblock content %}

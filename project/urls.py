@@ -20,13 +20,19 @@ from django.conf.urls import include
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
-# 
-from project.views import home
+
+
+from project.views import (
+    home,
+    test_dse,
+    test_mqtt
+)
 
 urlpatterns = [
     path("favicon.ico", RedirectView.as_view(url="/static/img/favicon.ico")),
     path("", home, name="home"),
     path("activity/", include("activity.urls", namespace="activity")),
+    path("administration/", include("administration.urls", namespace="administration")),
     path("archive/", include("archive.urls", namespace="archive")),
     path("groups/", include("groups.urls", namespace="groups")),
     path("users/", include("users.urls", namespace="users")),
@@ -36,5 +42,7 @@ urlpatterns = [
     path("api/cdmi/", include("rest_cdmi.urls", namespace="rest_cdmi")),
     path("api/admin/", include("rest_admin.urls", namespace="rest_admin")),
     path("msi/", include("msi.urls", namespace="msi")),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+    path('test_dse/', test_dse, name='test_dse'),
+    path('test_mqtt/', test_mqtt, name='test_mqtt'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

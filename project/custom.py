@@ -38,7 +38,10 @@ class CassandraMiddleware(MiddlewareMixin):
         
         user = cache.get("user_{}".format(username), None)
         if not user:
-            user = User.find(username)
+            try:
+                user = User.find(username)
+            except Exception:
+                return None
         request.user = user
         cache.set("user_{}".format(username), user, 60)
  

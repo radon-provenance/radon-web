@@ -1,14 +1,26 @@
 # Dockerfile
 FROM python:3.11
 
-# Hostnames for dse and mqtt servers
 ARG DSE_HOST
 ARG MQTT_HOST
 
-ENV PYTHONUNBUFFERED 1
+# Set environment variables 
+
+# Hostnames for DSE (Cassandra) and MQTT
 ENV DSE_HOST=${DSE_HOST}
 ENV MQTT_HOST=${MQTT_HOST}
-ENV CQLENG_ALLOW_SCHEMA_MANAGEMENT 1
+
+# Prevents Python from writing pyc files to disk
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Prevents Python from buffering stdout and stderr
+ENV PYTHONUNBUFFERED=1
+
+ENV CQLENG_ALLOW_SCHEMA_MANAGEMENT=1
+
+# Create destination folders
+RUN mkdir -p /code/radon-lib && \
+    mkdir -p /code/radon-web
 
 # Install prerequisites
 RUN apt -y update && \
@@ -16,19 +28,26 @@ RUN apt -y update && \
     pip install --upgrade pip && \
     apt clean
 
-# Create destination folders
-RUN mkdir -p /code/radon-lib && \
-    mkdir -p /code/radon-web
-
 # Install radon-lib
-COPY radon-lib /code/radon-lib
+COPY ./radon-lib /code/radon-lib
 WORKDIR /code/radon-lib
-RUN pip install -r requirements.txt
-RUN python setup.py develop
+RUN python -m pip install .
+
+# Copy the requirements install Python dependencies
+COPY ./radon-web/requirements.txt /code/radon-web
+WORKDIR /code/radon-web
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Install radon-web
-COPY radon-web /code/radon-web
+COPY ./radon-web /code/radon-web
 WORKDIR /code/radon-web
-RUN pip install -r requirements.txt
 RUN python manage.py collectstatic --noinput
 RUN python manage.py migrate --run-syncdb
+
+# Expose the Django port
+EXPOSE 8000
+
+# For developmemt use Django's development server so it can track changes
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# For production use Gunicorn 
+#CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "project.wsgi:application"]

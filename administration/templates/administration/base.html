@@ -1,0 +1,35 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Radon - {% block title %}{% endblock title %}</title>
+
+    {% load django_bootstrap5 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    
+    
+    <link href='{% static "css/radon.css" %}' rel="stylesheet">
+    <script src='{% static "js/radon.js" %}'></script>
+    <script src='{% static "js/jquery-3.7.1.min.js" %}'></script>
+
+  </head>
+
+  <body>
+
+    {% include "administration/snippets/top_menu.html" %}
+
+      {% block content %}
+      {% endblock content %}
+
+  </body>
+</html>
+

@@ -18,4 +18,125 @@
     </div>
 </div>
 
+
+<!-- DSE Connection Modal form -->
+<div class="modal fade" id="connectionSetup" data-bs-backdrop="static" 
+     data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="connectionSetupLabel">Network Configuration</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="container-fluid">
+          <form method="post" action="{% url 'home' %}">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            
+            <div class="row p-1">
+              <div class="col-4">{{ form.db_host.label_tag }}</div>
+              <div class="col-5 class="form-control" ">{{ form.db_host }}</div>
+              <div class="col-3">
+                <button type="button" 
+                        id="dseConnectionButton"
+                        class="btn {% if dse_connect %}btn-success{% else %}btn-danger{% endif %}"
+                        onclick="test_dse()">
+                  Test Connection
+                </button>
+              </div>
+            </div>
+            
+            <div class="row p-1">
+              <div class="col-4">{{ form.mqtt_host.label_tag }}</div>
+              <div class="col-5">{{ form.mqtt_host }}</div>
+              <div class="col-3">
+                <button type="button" 
+                        id="mqttConnectionButton"
+                        class="btn {% if mqtt_connect %}btn-success{% else %}btn-danger{% endif %}" 
+                        onclick="test_mqtt()">
+                  Test Connection
+                </button>
+              </div>
+            </div>
+            
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+    $(document).ready(function(){
+        {% if dse_connect == False or mqtt_connect == False %}
+            $('#connectionSetup').modal('show');
+        {% endif %}
+    });
+</script>
+
+<script>
+    function test_dse() {
+        var db_host = document.getElementById('id_db_host').value;
+        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch("{% url 'test_dse' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": csrfToken
+            },
+            body: new URLSearchParams({
+                'db_host': db_host
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                document.getElementById('dseConnectionButton').classList.replace("btn-danger", "btn-success");
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+</script>
+
+<script>
+    function test_mqtt() {
+        var mqtt_host = document.getElementById('id_mqtt_host').value;
+        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch("{% url 'test_mqtt' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": csrfToken
+            },
+            body: new URLSearchParams({
+                'mqtt_host': mqtt_host
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                var button = document.getElementById('mqttConnectionButton').classList.replace("btn-danger", "btn-success");
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+</script>
+
+
 {% endblock content %}

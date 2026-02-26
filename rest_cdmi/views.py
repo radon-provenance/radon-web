@@ -23,7 +23,7 @@ from django.shortcuts import redirect
 from django.http import JsonResponse, HttpResponse, StreamingHttpResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
