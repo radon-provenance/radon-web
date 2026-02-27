@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write # Obligatoire pour pousser l'image Docker
+      packages: write
     
     steps:
       - name: Checkout
