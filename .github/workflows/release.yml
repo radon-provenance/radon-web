@@ -22,12 +22,24 @@ jobs:
           node-version: 'lts/*'
 
       - name: Install Semantic Release
-        id: semantic
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_RELEASE_TOKEN }}
         run: |
           npm install --no-package-lock semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git @semantic-release/github
-          npx semantic-release
+
+      - name: Run Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_RELEASE_TOKEN }}
+        with:
+          extra_plugins: |
+            @semantic-release/commit-analyzer
+            @semantic-release/release-notes-generator
+            @semantic-release/exec
+            @semantic-release/git
+            @semantic-release/github
+        run: |
+          result=$(npx semantic-release)
+          echo "new_release_published=true" >> $GITHUB_OUTPUT
 
   docker:
     needs: release
@@ -49,7 +61,10 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
+          context: .
           push: true
           tags: |
-            mon-docker/radon-web:latest
-            mon-docker/radon-web:${{ needs.release.outputs.new_release_version }}|
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ needs.release.outputs.new_release_version }}
+          build-args: |
+            APP_VERSION=${{ needs.release.outputs.new_release_version }}
