@@ -1,6 +1,3 @@
-# Install radon-lib from GitHub
-git+https://github.com/radon-provenance/radon-lib.git@master
-
 django==5.2
 django-bootstrap5==25.1
 django-bootstrap-icons==0.9.0
